@@ -14,25 +14,27 @@ export default function Header() {
           hub
         </span>
       </Link>
-      <div className="flex justify-end items-center text-sm md:text-base">
-        <div className="text-sm">{user?.nickname}</div>
-        {user ? (
-          <div className="ml-4 w-8 aspect-square relative">
-            <Image
-              src={user.picture!}
-              fill={true}
-              alt="Capybara.AI"
-              style={{
-                objectFit: "cover",
-                overflow: "hidden",
-                borderRadius: "100%",
-              }}
-            />
-          </div>
-        ) : (
-          <div></div>
-        )}
-      </div>
+      <Link href="/profile">
+        <div className="flex justify-end items-center text-sm md:text-base">
+          <div className="text-sm">{user?.nickname}</div>
+          {user ? (
+            <div className="ml-4 w-8 aspect-square relative">
+              <Image
+                src={user.picture!}
+                fill={true}
+                alt="Capybara.AI"
+                style={{
+                  objectFit: "cover",
+                  overflow: "hidden",
+                  borderRadius: "100%",
+                }}
+              />
+            </div>
+          ) : (
+            <div></div>
+          )}
+        </div>
+      </Link>
     </div>
   );
 }

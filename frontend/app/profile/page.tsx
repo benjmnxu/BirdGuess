@@ -14,6 +14,11 @@ export default function Home() {
   return (
     <div className="h-full text-text-primary">
       <Header />
+      <div className="mt-24 md:mt-40 mb-24 md:mb-40 container mx-auto max-w-screen-lg px-6 flex flex-col items-center">
+        <a href="/api/auth/logout">
+          <button className="btn-small md:btn">Logout</button>
+        </a>
+      </div>
     </div>
   );
 }
