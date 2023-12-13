@@ -1,0 +1,10 @@
+Code and notes files used for data cleaning and processing and table alteration in chronological order:
+CIS4500_5500_Project_EDA.ipynb
+Selecting_List_of_Unique_World_Bank_Indicators.ipynb
+indicator_names selected.csv
+CIS4500_5500_Project_Data_Cleaning.ipynb
+CIS4500_5500_project_functional_dependencies.ipynb
+SQL - alter table - 3NF decomposition and add constraints.docx
+CIS4500_5500_Project_investigating_failed_indicatorCode_foreign_key_constraint.ipynb
+CIS4500_5500_country_and_region_data_cleaning.ipynb
+SQL - create countryRegion and entity resolution continued.docx
