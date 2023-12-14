@@ -1,9 +1,9 @@
 "use client";
 
-import Header from "./components/Header";
 import Spline from "@splinetool/react-spline";
 import Link from "next/link";
 import { useUser } from "@auth0/nextjs-auth0/client";
+import Header from "./components/Header";
 
 export default function Home() {
   const { user, error, isLoading } = useUser();
@@ -30,11 +30,20 @@ export default function Home() {
             </Link>
           </div>
         </div>
-        <div className="w-[36vw]">
-          <Spline
-            className="scale-100"
-            scene="https://prod.spline.design/2D-l5Q34osSms3Pp/scene.splinecode"
-          />
+        <div className="flex flex-col justify-center items-center">
+          <div
+            className="w-[36vw] h-[36vh] rounded bg-cover"
+            style={{
+              backgroundImage:
+                "url(https://assets-global.website-files.com/615b76588f53c50835338a18/646374d7aa7aae1186a847ea_CleanShot%202023-05-16%20at%2008.14.14%402x.png)",
+            }}
+          >
+            <Spline
+              className="scale-100"
+              scene="https://prod.spline.design/phTIfkK0aTjd8XvB/scene.splinecode"
+            />
+          </div>
+          <div className="mt-2 text-xs">try moving with WASD {":)"}</div>
         </div>
       </div>
     </div>

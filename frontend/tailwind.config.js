@@ -22,6 +22,7 @@ module.exports = {
     },
     borderColor: {
       DEFAULT: "#ffffff10",
+      primary: "#ff8a00",
     },
     borderRadius: {
       DEFAULT: "0.75rem",
@@ -68,12 +69,10 @@ module.exports = {
           color: "#000000",
           fontWeight: "700",
           fontSize: "0.875rem",
-          background: "radial-gradient(#ff8a00, #ef6000)",
-          borderWidth: "1px",
-          borderColor: "#ffffff10",
+          background: "#ff8a00",
           transitionDuration: "300ms",
           "&:hover": {
-            boxShadow: "inset 0 1rem 2rem 0 #ffffff20",
+            boxShadow: "inset 0 0 4rem 0 #ffffff20",
           },
         },
         ".btn-small": {
@@ -83,12 +82,49 @@ module.exports = {
           color: "#000000",
           fontWeight: "700",
           fontSize: "0.875rem",
-          background: "radial-gradient(#ff8a00, #ef6000)",
-          borderWidth: "1px",
-          borderColor: "#ffffff10",
+          background: "#ff8a00",
           transitionDuration: "300ms",
           "&:hover": {
-            boxShadow: "inset 0 1rem 2rem 0 #ffffff10",
+            boxShadow: "inset 0 0 4rem 0 #ffffff10",
+          },
+        },
+        ".btn-wide-white": {
+          width: "100%",
+          minHeight: "3rem",
+          borderRadius: "1.5rem",
+          color: "#000000",
+          fontWeight: "700",
+          fontSize: "0.875rem",
+          background: "#ffffff",
+          transitionDuration: "300ms",
+          "&:hover": {
+            boxShadow: "inset 0 0 4rem 0 #ff8a0080",
+          },
+        },
+        ".btn-wide-orange": {
+          width: "100%",
+          minHeight: "3rem",
+          borderRadius: "1.5rem",
+          color: "#000000",
+          fontWeight: "700",
+          fontSize: "0.875rem",
+          background: "#ff8a00",
+          transitionDuration: "300ms",
+          "&:hover": {
+            boxShadow: "inset 0 1rem 2rem 0 #ffffff20",
+          },
+        },
+        ".btn-wide-red": {
+          width: "100%",
+          minHeight: "3rem",
+          borderRadius: "1.5rem",
+          color: "#000000",
+          fontWeight: "700",
+          fontSize: "0.875rem",
+          background: "#ff3a20",
+          transitionDuration: "300ms",
+          "&:hover": {
+            boxShadow: "inset 0 1rem 2rem 0 #ffffff20",
           },
         },
       });

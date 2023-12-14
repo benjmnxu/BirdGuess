@@ -6,8 +6,8 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Bird Game",
-  description: "Bird Game",
+  title: "Birdhub",
+  description: "Guess the country based on the bird sound!",
 };
 
 export default function RootLayout({
