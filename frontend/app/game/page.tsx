@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, ReactNode } from "react";
+import { useState, useEffect } from "react";
 import { redirect } from "next/navigation";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import ReactAudioPlayer from "react-audio-player";
@@ -10,13 +10,17 @@ const config = require("../../../backend/config.json");
 
 export default function Home() {
   const { user, error, isLoading } = useUser();
-  const [bird, setBird] = useState("");
+  const [vernacular, setVernacular] = useState("");
+  const [scientific, setScientific] = useState("");
   const [audio, setAudio] = useState("");
   const [choices, setChoices] = useState(["", "", "", ""]);
   const [correct, setCorrect] = useState(0);
   const [year, setYear] = useState(0);
   const [indicator, setIndicator] = useState("");
   const [value, setValue] = useState(0);
+  const [newVernacular, setNewVernacular] = useState("");
+  const [newIndicator, setNewIndicator] = useState("");
+  const [newValue, setNewValue] = useState(0);
 
   const [loading, setLoading] = useState(true);
   const [play, setPlay] = useState(false);
@@ -74,7 +78,8 @@ export default function Home() {
     fetch(`http://${config.server_host}:${config.server_port}/newbird`)
       .then((res) => res.json())
       .then((resJson) => {
-        setBird(resJson["scientificName"]);
+        setVernacular(resJson["vernacularName"]);
+        setScientific(resJson["scientificName"]);
         setAudio(resJson["accessURI"]);
         let correctCountry = resJson["country"];
         let choices = [correctCountry];
@@ -98,7 +103,6 @@ export default function Home() {
             )
               .then((res) => res.json())
               .then((resJson) => {
-                console.log(resJson);
                 setYear(resJson["year"]);
                 setIndicator(resJson["indicatorName"]);
                 setValue(resJson["value"]);
@@ -110,6 +114,15 @@ export default function Home() {
                 setEndRound(false);
                 setPlay(true);
                 setLoading(false);
+                fetch(
+                  `http://${config.server_host}:${config.server_port}/randomcountrybirdandfact/${correctCountry}`
+                )
+                  .then((res) => res.json())
+                  .then((resJson) => {
+                    setNewVernacular(resJson["vernacularName"]);
+                    setNewIndicator(resJson["indicatorName"]);
+                    setNewValue(resJson["averageValue"]);
+                  });
               });
           });
       });
@@ -151,12 +164,18 @@ export default function Home() {
           <ReactAudioPlayer src={audio} autoPlay={play} controls />
           {endRound ? (
             <div className="flex flex-col items-center">
-              <div className="mt-12 text-lg">You got it!</div>
+              <div className="mt-12 text-lg">
+                You got it! You used <b>{guesses} / 4</b> guesses
+              </div>
               <div className="mt-6 text-4xl font-bold">
-                {bird} was recorded in {choices[correct]}
+                {vernacular} was recorded in {choices[correct]}
+              </div>
+              <div className="mt-6 text-lg">Country facts</div>
+              <div className="mt-6 text-lg">
+                {newVernacular} has also been recorded in {choices[correct]}
               </div>
               <div className="mt-6 text-lg">
-                You used <b>{guesses} / 4</b> guesses
+                In {choices[correct]}, the average {newIndicator} is {newValue}
               </div>
               <button className="mt-12 btn" onClick={() => reset()}>
                 Next round

@@ -15,10 +15,10 @@ app.use(
 app.get("/newbird", routes.newBird);
 app.get("/othercountries/:country", routes.otherCountries);
 app.get("/countryfact/:country", routes.countryFact);
+app.get("/randomcountrybirdandfact/:country", routes.randomCountryBirdAndFact);
 app.get("/genustocountry", routes.genusToCountry);
 app.get("/genustoyear", routes.genusToYear);
 app.get("/diffgenus", routes.diffGenus);
-app.get("/randomcountrybirdandfact", routes.randomCountryBirdAndFact);
 app.get("/regionbirdsandfacts", routes.regionBirdsAndFacts);
 
 app.listen(config.server_port, () => {

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import { useEffect } from "react";
 import Image from "next/image";
 import { redirect } from "next/navigation";
 import { useUser } from "@auth0/nextjs-auth0/client";
