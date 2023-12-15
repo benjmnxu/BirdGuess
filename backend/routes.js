@@ -36,6 +36,7 @@ const randomCountryFact = async function (req, res) {
   );
 };
 
+//given the previous birds and previous countries, generate a new bird
 const newBird = async function (req, res) {
   const prev_names =
     req.query.prevNames === undefined ? "" : req.query.prevNames;
@@ -62,6 +63,8 @@ const newBird = async function (req, res) {
   );
 };
 
+//given a region, a set of indicators, and a year, find the most common birds recorded in each of the countries
+//in that region as well as the associated indicator values (as specified)
 const birdAndFactsByRegion = async function (req, res) {
   const region = req.query.region;
   const key_facts = tuple(req.params.key_facts);
