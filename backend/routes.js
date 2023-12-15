@@ -11,32 +11,7 @@ const connection = mysql.createConnection({
 
 connection.connect((err) => err && console.log(err));
 
-// Route 3: GET /countryfact/:countryName
-const randomCountryFact = async function (req, res) {
-  // Given a country name, return a random associated fact for that country
-  const countryName = req.params.countryName;
-  connection.query(
-    `
-    SELECT countryName, year, value, indicatorName
-    FROM worldBankData wbd JOIN worldBankIndicators wbi ON wbd.indicatorCode = wbi.indicatorCode
-    WHERE countryName = '${countryName}'
-    ORDER BY RAND()
-    LIMIT 1
-  `,
-    (err, data) => {
-      if (err || data.length === 0) {
-        console.log("I am actually here");
-        console.log("this is the error" + err);
-        res.json({});
-      } else {
-        console.log("I am here");
-        res.json(data[0]);
-      }
-    }
-  );
-};
-
-//given the previous birds and previous countries, generate a new bird
+// Given the previous birds and previous countries, return a new bird
 const newBird = async function (req, res) {
   const prev_names =
     req.query.prevNames === undefined ? "" : req.query.prevNames;
@@ -62,6 +37,7 @@ const newBird = async function (req, res) {
   );
 };
 
+// Given a country, return 3 other random countries
 const otherCountries = async function (req, res) {
   const answer_country = req.params.country;
   connection.query(
@@ -83,11 +59,78 @@ const otherCountries = async function (req, res) {
   );
 };
 
-//given a region, a set of indicators, and a year, find the most common birds recorded in each of the countries
-//in that region as well as the associated indicator values (as specified)
+// Given a country name, return a random associated fact for that country
+const countryFact = async function (req, res) {
+  const countryName = req.params.countryName;
+  connection.query(
+    `
+    SELECT countryName, year, value, indicatorName
+    FROM worldBankData wbd JOIN worldBankIndicators wbi ON wbd.indicatorCode = wbi.indicatorCode
+    WHERE countryName = '${countryName}'
+    ORDER BY RAND()
+    LIMIT 1
+  `,
+    (err, data) => {
+      if (err || data.length === 0) {
+        console.log("this is the error" + err);
+        res.json({});
+      } else {
+        console.log("I am here");
+        res.json(data[0]);
+      }
+    }
+  );
+};
+
+// Given a region, a set of indicators, and a year, find the most common birds recorded in each of the countries
+// in that region as well as the associated indicator values (as specified)
 const birdAndFactsByRegion = async function (req, res) {
   const region = req.query.region;
   const key_facts = tuple(req.params.key_facts);
+  const year = req.params.year;
+  connection.query(
+    `
+    WITH tmp1(country_name) AS (
+        SELECT countryName
+        FROM countryRegion
+        WHERE region = '${region}'
+    ),
+        raw_birds(bird_name, country, bird_freq) AS (
+          SELECT scientificName, b.country, COUNT(1) as birdFreq
+          FROM birdData b JOIN tmp1 t ON t.country_name = b.country AND b.scientificName != 'Mystery mystery'
+          GROUP BY scientificName
+        ),
+        birds(bird_name, country, bird_freq, rnk) AS (
+            SELECT bird_name, country, bird_freq, ROW_NUMBER() over (PARTITION BY country order by bird_freq DESC)
+            FROM raw_birds
+        ),
+        tmp2(indicator_code, unitOfMeasure) AS (
+            SELECT indicatorCode, unitOfMeasure
+            FROM worldBankIndicators
+            WHERE indicatorName IN ${key_facts}
+        )
+    SELECT bird_name, countryName, value, indicatorCode, bird_freq, rnk
+    FROM worldBankData w
+        JOIN tmp1 t1 ON w.countryName = t1.country_name
+        JOIN tmp2 t2 ON w.indicatorCode = t2.indicator_code
+        JOIN birds b ON b.country = t1.country_name
+    WHERE year = ${year} AND rnk = 1
+    `,
+    (err, data) => {
+      if (err || data.length == 0) {
+        console.log(err);
+        res.json({});
+      } else {
+        res.json(data);
+      }
+    }
+  );
+};
+
+// Given a bird, return countries where bird has been recorded with associated facts
+const birdCountriesFacts = async function (req, res) {
+  const region = req.query.bird;
+  const key_facts = req.params.key_facts;
   const year = req.params.year;
   connection.query(
     `
@@ -148,44 +191,10 @@ const diffGenus = async function (req, res) {
   );
 };
 
-// Given a country, select a random bird from that country as well as a random indicator and its corresponding average value
-const randomBirdAndFact = async function (req, res) {
-  const countryName = req.params.countryName;
-  connection.query(
-    `
-    WITH countryAverageIndicator AS (
-      SELECT countryName, indicatorName, AVG(value) averageValue
-      FROM worldBankData wbd JOIN worldBankIndicators wbi ON wbd.indicatorCode = wbi.indicatorCode
-      WHERE countryName = ${countryName}
-      GROUP BY indicatorName
-      ORDER BY RAND()
-  ),
-  birdNameCountry AS (
-      SELECT id, vernacularName, country
-      FROM birdData JOIN birdSpecies bS on bS.scientificName = birdData.scientificName
-      WHERE country = ${countryName}
-      ORDER BY RAND()
-      LIMIT 1
-  )
-  SELECT id, vernacularName, country, indicatorName, averageValue
-  FROM birdNameCountry bc JOIN countryAverageIndicator cAI ON bc.country = cAI.countryName
-  LIMIT 1;
-  `,
-    (err, data) => {
-      if (err || data.length === 0) {
-        console.log("this is the error" + err);
-        res.json({});
-      } else {
-        res.json(data[0]);
-      }
-    }
-  );
-};
-
 // Given a list of genus already seen by the player,
 // list the genus name and the country with the max average value across metrics in the
-// category of 'Environment: Biodiversity & protected areas' for that genus. Order the results by genus name.
-const genusToEnvCountry = async function (req, res) {
+// category of 'Environment: Biodiversity & protected areas' for that genus, order the results by genus name
+const genusToCountry = async function (req, res) {
   const genusesSeen = Array.isArray(req.params.genusesSeen);
   connection.query(
     `
@@ -221,80 +230,7 @@ const genusToEnvCountry = async function (req, res) {
   );
 };
 
-// Route 3: GET /countryfact/:countryName
-const birdcountryfact = async function (req, res) {
-  // Given a country name, return a random associated fact for that country
-  const song_id = req.params.bird;
-  connection.query(
-    `
-    SELECT wbd.indicatorCode, countryName, year, value, indicatorName
-    FROM worldBankData wbd JOIN worldBankIndicators wbi ON wbd.indicatorCode = wbi.indicatorCode
-    WHERE countryName = '${countryName}'
-    ORDER BY RAND()
-    LIMIT 1
-  `,
-    (err, data) => {
-      if (err || data.length === 0) {
-        console.log("I am actually here");
-        console.log("this is the error" + err);
-        res.json({});
-      } else {
-        console.log("I am here");
-        res.json(data[0]);
-      }
-    }
-  );
-};
-
-const birdCountriesFacts = async function (req, res) {
-  /*
-    Given a bird, return countries where bird has been recorded with associated facts
-    */
-  const region = req.query.bird;
-  const key_facts = req.params.key_facts;
-  const year = req.params.year;
-  connection.query(
-    `
-    WITH tmp1(country_name) AS (
-        SELECT countryName
-        FROM countryRegion
-        WHERE region = '${region}'
-    ),
-        raw_birds(bird_name, country, bird_freq) AS (
-          SELECT scientificName, b.country, COUNT(1) as birdFreq
-          FROM birdData b JOIN tmp1 t ON t.country_name = b.country AND b.scientificName != 'Mystery mystery'
-          GROUP BY scientificName
-        ),
-        birds(bird_name, country, bird_freq, rnk) AS (
-            SELECT bird_name, country, bird_freq, ROW_NUMBER() over (PARTITION BY country order by bird_freq DESC)
-            FROM raw_birds
-        ),
-        tmp2(indicator_code, unitOfMeasure) AS (
-            SELECT indicatorCode, unitOfMeasure
-            FROM worldBankIndicators
-            WHERE indicatorName IN ${key_facts}
-        )
-    SELECT bird_name, countryName, value, indicatorCode, bird_freq, rnk
-    FROM worldBankData w
-        JOIN tmp1 t1 ON w.countryName = t1.country_name
-        JOIN tmp2 t2 ON w.indicatorCode = t2.indicator_code
-        JOIN birds b ON b.country = t1.country_name
-    WHERE year = ${year} AND rnk = 1
-    `,
-    (err, data) => {
-      if (err || data.length == 0) {
-        console.log(err);
-        res.json({});
-      } else {
-        res.json(data);
-      }
-    }
-  );
-};
-
-// # For the bird genuses seen already,
-// # record the year in which the countries they were in had the highest values summed values
-// # for metrics under the Environment: Biodiversity & protected areas topic
+// Given a list of genus we have seen, what year was the best for the bird?
 const genusToYear = async function (req, res) {
   const genusesSeen = Array.isArray(req.params.genusesSeen);
   connection.query(
@@ -336,13 +272,11 @@ const genusToYear = async function (req, res) {
 
 module.exports = {
   newBird,
-  birdAndFactsByRegion,
   otherCountries,
-  randomCountryFact,
-  diffGenus,
-  randomBirdAndFact,
-  genusToEnvCountry,
+  countryFact,
+  birdAndFactsByRegion,
+  birdCountriesFacts,
+  genusToCountry,
   genusToYear,
+  diffGenus,
 };
-
-//Out of all countries the user has seen/guessed right, rank the countries by those with the most bird sounds
