@@ -139,17 +139,56 @@ const randomBirdAndFact = async function (req, res) {
       WHERE countryName = ${countryName}
       GROUP BY indicatorName
       ORDER BY RAND()
+  ),
+  birdNameCountry AS (
+      SELECT id, vernacularName, country
+      FROM birdData JOIN birdSpecies bS on bS.scientificName = birdData.scientificName
+      WHERE country = ${countryName}
+      ORDER BY RAND()
+      LIMIT 1
+  )
+  SELECT id, vernacularName, country, indicatorName, averageValue
+  FROM birdNameCountry bc JOIN countryAverageIndicator cAI ON bc.country = cAI.countryName
+  LIMIT 1;
+  `,
+    (err, data) => {
+      if (err || data.length === 0) {
+        console.log("this is the error" + err);
+        res.json({});
+      } else {
+        res.json(data[0]);
+      }
+    }
+  );
+};
+
+// Given a list of genus already seen by the player,
+// list the genus name and the country with the max average value across metrics in the
+// category of 'Environment: Biodiversity & protected areas' for that genus. Order the results by genus name.
+const genusToEnvCountry = async function (req, res) {
+  const genusesSeen = Array.isArray(req.params.genusesSeen);
+  connection.query(
+    `
+    WITH genusToCountry AS (
+      SELECT distinct (country) countryIn, genus
+      FROM birdData JOIN birdSpecies bS on bS.scientificName = birdData.scientificName
+      WHERE genus in ${genusesSeen}
+  
     ),
-    birdNameCountry AS (
-        SELECT id, vernacularName, country
-        FROM birdData JOIN birdSpecies bS on bS.scientificName = birdData.scientificName
-        WHERE country = ${countryName}
-        ORDER BY RAND()
-        LIMIT 1
+    countryToAverageValue AS (
+        SELECT countryName, AVG(value) averageValue
+        FROM worldBankData JOIN worldBankIndicators ON worldBankData.indicatorCode = worldBankIndicators.indicatorCode
+        WHERE topic = 'Environment: Biodiversity & protected areas'
+        GROUP BY countryName
+    ),
+    genusToCountryToValue AS (
+        SELECT genus, genusToCountry.countryIn country, averageValue
+        FROM genusToCountry JOIN countryToAverageValue on genusToCountry.countryIn = countryToAverageValue.countryName
+        ORDER BY genus
     )
-    SELECT id, vernacularName, country, indicatorName, averageValue
-    FROM birdNameCountry bc JOIN countryAverageIndicator cAI ON bc.country = cAI.countryName
-    LIMIT 1;
+    SELECT genus, country, MAX(averageValue)
+    FROM genusToCountryToValue
+    GROUP BY genus;
   `,
     (err, data) => {
       if (err || data.length === 0) {
@@ -168,6 +207,7 @@ module.exports = {
   randomCountryFact,
   diffGenus,
   randomBirdAndFact,
+  genusToEnvCountry,
 };
 
 //Out of all countries the user has seen/guessed right, rank the countries by those with the most bird sounds
