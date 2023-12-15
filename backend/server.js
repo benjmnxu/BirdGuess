@@ -20,6 +20,7 @@ app.get(
   routes.randomCountryBirdAndFact
 );
 app.get("/birdtocountry/:bird", routes.birdToCountry);
+app.get("/birdtoyear/:bird", routes.birdToYear);
 app.get("/genustocountry", routes.genusToCountry);
 app.get("/genustoyear", routes.genusToYear);
 app.get("/diffgenus", routes.diffGenus);

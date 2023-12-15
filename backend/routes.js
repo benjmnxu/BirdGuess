@@ -21,7 +21,7 @@ const newBird = async function (req, res) {
     req.query.prevCountries === undefined ? "" : req.query.prevCountries;
   connection.query(
     `
-    SELECT vernacularName, bS.scientificName, country, accessURI, id
+    SELECT vernacularName, genus, bS.scientificName, country, accessURI, id
     FROM birdData join birdGame.birdSpecies bS on bS.scientificName = birdData.scientificName
     WHERE bS.scientificName NOT IN ('${prev_names}')
       AND country NOT IN ('${prev_countries}')
@@ -144,6 +144,44 @@ const birdToCountry = async function (req, res) {
     FROM birdToCountryToValue
     WHERE rnk = 1
     GROUP BY vernacularName;
+    `,
+    (err, data) => {
+      if (err || data.length === 0) {
+        console.log(err);
+        res.json({});
+      } else {
+        res.json(data[0]);
+      }
+    }
+  );
+};
+
+const birdToYear = async function (req, res) {
+  const bird = req.params.bird;
+  connection.query(
+    `
+    WITH birdToYear AS (
+      SELECT DISTINCT vernacularName, country
+      FROM birdData JOIN birdGame.birdSpecies bS on bS.scientificName = birdData.scientificNamev
+      WHERE vernacularName = '${bird}'
+    ), countryBSTValue AS (
+      SELECT countryName, year, SUM(value) totalMetric
+      FROM worldBankData JOIN birdGame.worldBankIndicators wBI on wBI.indicatorCode = worldBankData.indicatorCode
+      WHERE topic = 'Environment: Biodiversity & protected areas' and year <> 2018
+      GROUP BY countryName, year
+      ORDER BY countryName
+    ), birdToTotalMetric AS (
+      SELECT vernacularName, countryName, year, totalMetric
+      FROM birdToYear JOIN countryBSTValue ON birdToYear.country = countryBSTValue.countryName
+    ), birdToYearToMetric AS (
+      SELECT vernacularName, year, SUM(totalMetric) totalMetricByYear, RANK() OVER (PARTITION BY vernacularName ORDER BY SUM(totalMetric) DESC) as rnk
+      FROM birdToTotalMetric
+      GROUP BY vernacularName, year
+    )
+    SELECT vernacularName, year, totalMetricByYear
+    FROM birdToYearToMetric
+    WHERE rnk = 1
+    GROUP BY vernacularName
     `,
     (err, data) => {
       if (err || data.length === 0) {
@@ -322,6 +360,7 @@ module.exports = {
   countryFact,
   randomCountryBirdAndFact,
   birdToCountry,
+  birdToYear,
   genusToCountry,
   genusToYear,
   diffGenus,

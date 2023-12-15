@@ -24,6 +24,8 @@ export default function Home() {
   const [newIndicator, setNewIndicator] = useState("");
   const [newValue, setNewValue] = useState(0);
   const [newCountry, setNewCountry] = useState("");
+  const [newYear, setNewYear] = useState(0);
+  const [newMetric, setNewMetric] = useState(0);
   const [img, setImg] = useState("");
 
   const [loading, setLoading] = useState(true);
@@ -66,7 +68,6 @@ export default function Home() {
       )
         .then((res) => res.json())
         .then((resJson) => {
-          console.log(resJson);
           setYear(resJson["year"]);
           setIndicator(resJson["indicatorName"]);
           setValue(resJson["value"]);
@@ -140,7 +141,14 @@ export default function Home() {
                   .then((res) => res.json())
                   .then((resJson) => {
                     setNewCountry(resJson["country"]);
-                    console.log(resJson);
+                  });
+                fetch(
+                  `http://${config.server_host}:${config.server_port}/birdtoyear/${vernacular}`
+                )
+                  .then((res) => res.json())
+                  .then((resJson) => {
+                    setNewYear(resJson["year"]);
+                    setNewMetric(resJson["totalMetricByYear"]);
                   });
                 openai.images
                   .generate({
@@ -155,7 +163,6 @@ export default function Home() {
                   })
                   .then((res: any) => {
                     setImg(res.data[0]["url"]);
-                    console.log(res.data[0]["url"]);
                   });
               });
           });
@@ -204,7 +211,7 @@ export default function Home() {
                     You got it! You used <b>{guesses} / 4</b> guesses
                   </div>
                   <div className="mt-6 text-2xl font-bold">
-                    {vernacular} was recorded in {choices[correct]}
+                    The {vernacular} was recorded in {choices[correct]}
                   </div>
                 </div>
                 {img == "" ? (
@@ -225,8 +232,8 @@ export default function Home() {
                 <div className="max-w-[30vw] flex flex-col justify-start items-start">
                   <div className="text-lg font-bold">Country facts</div>
                   <div className="mt-4 = text-base">
-                    - Did you know that the {newVernacular} has also been
-                    recorded in {choices[correct]}?
+                    - The {newVernacular} has also been recorded in{" "}
+                    {choices[correct]}
                   </div>
                   <div className="mt-4 text-base">
                     - In {choices[correct]}, the average {newIndicator} is{" "}
@@ -238,6 +245,10 @@ export default function Home() {
                   <div className="mt-4 text-base">
                     - The best environmentally-friendly country for {vernacular}{" "}
                     is {newCountry}
+                  </div>
+                  <div className="mt-4 text-base">
+                    - The best environmentally-friendly year for {vernacular}{" "}
+                    was {newYear} (total biodiversity score of {newMetric})
                   </div>
                 </div>
               </div>
