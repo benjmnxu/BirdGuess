@@ -171,26 +171,6 @@ const birdCountriesFacts = async function (req, res) {
   );
 };
 
-// Given a list of genus, find all genus that have yet to be found
-const diffGenus = async function (req, res) {
-  const prev_genus = Array.isArray(req.params.prev_genus);
-  connection.query(
-    `
-    SELECT *
-    FROM birdSpecies
-    WHERE genus NOT IN ('${prev_genus}')
-  `,
-    (err, data) => {
-      if (err || data.length === 0) {
-        console.log("this is the error" + err);
-        res.json({});
-      } else {
-        res.json(data[0]);
-      }
-    }
-  );
-};
-
 // Given a list of genus already seen by the player,
 // list the genus name and the country with the max average value across metrics in the
 // category of 'Environment: Biodiversity & protected areas' for that genus, order the results by genus name
@@ -258,6 +238,26 @@ const genusToYear = async function (req, res) {
   SELECT genus, year, totalMetricByYear
   FROM genusToYearToMetric
   WHERE rnk = 1;
+  `,
+    (err, data) => {
+      if (err || data.length === 0) {
+        console.log("this is the error" + err);
+        res.json({});
+      } else {
+        res.json(data[0]);
+      }
+    }
+  );
+};
+
+// Given a list of genus, find all genus that have yet to be found
+const diffGenus = async function (req, res) {
+  const prev_genus = Array.isArray(req.params.prev_genus);
+  connection.query(
+    `
+    SELECT *
+    FROM birdSpecies
+    WHERE genus NOT IN ('${prev_genus}')
   `,
     (err, data) => {
       if (err || data.length === 0) {
