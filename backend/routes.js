@@ -1,4 +1,5 @@
 const mysql = require("mysql");
+const coll = require("./mongo");
 const config = require("./config.json");
 
 const connection = mysql.createConnection({
@@ -423,6 +424,41 @@ const diffRegion = async function (req, res) {
   );
 };
 
+// MongoDB
+
+const mongoPut = async function (req, res) {
+  const user = req.params.user;
+  const genus = req.params.genus;
+  const region = req.params.region;
+  f = await coll.find({ user: user }).toArray();
+  if (f.length == 0) {
+    result = await coll.insertOne({
+      user: user,
+      genus: [genus],
+      region: [region],
+    });
+  } else {
+    result = await coll.updateOne(
+      { user: user },
+      { $addToSet: { region: region } },
+      { $addToSet: { genus: genus } }
+    );
+  }
+  res.json(result);
+};
+
+const mongoGet = async function (req, res) {
+  const user = req.params.user;
+
+  result = await coll.find({ user: user }).toArray();
+  console.log(result);
+  if (result.length == 0) {
+    res.json({ ERROR: "No such user" });
+  } else {
+    res.json(result);
+  }
+};
+
 module.exports = {
   newBird,
   otherCountries,
@@ -435,5 +471,7 @@ module.exports = {
   genusToYear,
   diffGenus,
   regionBirdsAndFacts,
+  mongoPut,
+  mongoGet,
   diffRegion,
 };

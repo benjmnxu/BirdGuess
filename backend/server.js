@@ -27,6 +27,8 @@ app.get("/genustoyear", routes.genusToYear);
 app.get("/diffgenus", routes.diffGenus);
 app.get("/regionbirdsandfacts", routes.regionBirdsAndFacts);
 app.get("/diffregion", routes.diffRegion);
+app.get("/mongoput/:user/:genus/:region", routes.mongoPut);
+app.get("/mongoget/:user", routes.mongoGet);
 
 app.listen(config.server_port, () => {
   console.log(
