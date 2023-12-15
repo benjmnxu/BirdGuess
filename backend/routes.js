@@ -128,11 +128,46 @@ const diffGenus = async function (req, res) {
   );
 };
 
+// Given a country, select a random bird from that country as well as a random indicator and its corresponding average value
+const randomBirdAndFact = async function (req, res) {
+  const countryName = req.params.countryName;
+  connection.query(
+    `
+    WITH countryAverageIndicator AS (
+      SELECT countryName, indicatorName, AVG(value) averageValue
+      FROM worldBankData wbd JOIN worldBankIndicators wbi ON wbd.indicatorCode = wbi.indicatorCode
+      WHERE countryName = ${countryName}
+      GROUP BY indicatorName
+      ORDER BY RAND()
+    ),
+    birdNameCountry AS (
+        SELECT id, vernacularName, country
+        FROM birdData JOIN birdSpecies bS on bS.scientificName = birdData.scientificName
+        WHERE country = ${countryName}
+        ORDER BY RAND()
+        LIMIT 1
+    )
+    SELECT id, vernacularName, country, indicatorName, averageValue
+    FROM birdNameCountry bc JOIN countryAverageIndicator cAI ON bc.country = cAI.countryName
+    LIMIT 1;
+  `,
+    (err, data) => {
+      if (err || data.length === 0) {
+        console.log("this is the error" + err);
+        res.json({});
+      } else {
+        res.json(data[0]);
+      }
+    }
+  );
+};
+
 module.exports = {
   newBird,
   birdAndFactsByRegion,
   randomCountryFact,
   diffGenus,
+  randomBirdAndFact,
 };
 
 //Out of all countries the user has seen/guessed right, rank the countries by those with the most bird sounds

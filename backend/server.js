@@ -15,6 +15,7 @@ app.use(
 app.get("/newbird", routes.newBird);
 app.get("/countryfact/:countryName", routes.randomCountryFact);
 app.get("/diffGenus", routes.diffGenus);
+app.get("/randomBirdAndFact/:countryName", routes.randomBirdAndFact);
 
 app.listen(config.server_port, () => {
   console.log(
