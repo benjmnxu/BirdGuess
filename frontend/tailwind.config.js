@@ -38,20 +38,8 @@ module.exports = {
       },
       keyframes: {
         wiggle: {
-          "0%, 100%": {
-            position: "absolute",
-            bottom: "0",
-            left: "0",
-            right: "0",
-            transform: "translateY(0rem)",
-          },
-          "50%": {
-            position: "absolute",
-            bottom: "0",
-            left: "0",
-            right: "0",
-            transform: "translateY(-0.5rem)",
-          },
+          "0%, 100%": { transform: "rotate(-3deg)" },
+          "50%": { transform: "rotate(3deg)" },
         },
       },
       animation: {
