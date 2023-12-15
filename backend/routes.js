@@ -162,7 +162,7 @@ const birdToYear = async function (req, res) {
     `
     WITH birdToYear AS (
       SELECT DISTINCT vernacularName, country
-      FROM birdData JOIN birdGame.birdSpecies bS on bS.scientificName = birdData.scientificNamev
+      FROM birdData JOIN birdGame.birdSpecies bS on bS.scientificName = birdData.scientificName
       WHERE vernacularName = '${bird}'
     ), countryBSTValue AS (
       SELECT countryName, year, SUM(value) totalMetric
@@ -189,6 +189,57 @@ const birdToYear = async function (req, res) {
         res.json({});
       } else {
         res.json(data[0]);
+      }
+    }
+  );
+};
+
+// Find the bird id the 5 closest birds to the id bird by coordinate
+const birdsCloseByCoordinate = async function (req, res) {
+  const id = req.params.id;
+  connection.query(
+    `
+    WITH tmp1(longitude, latitude, country) AS (
+      SELECT longitudeDecimal, latitudeDecimal, country
+        FROM birdData
+        WHERE id = '${id}' AND longitudeDecimal IS NOT NULL AND latitudeDecimal IS NOT NULL
+    ),
+      closeBirds(id, name, distance, country) AS (
+        SELECT b.id, b.scientificName AS name, SQRT(POW((t.latitude - b.latitudeDecimal), 2) + POW((t.longitude - b.longitudeDecimal),2)) AS distance, b.country
+        FROM birdData b JOIN tmp1 t ON b.country != t.country
+      ),
+      distinctBirds(id, name, distance, country) AS (
+        SELECT id, name, distance, country
+        FROM (SELECT id, name, distance, country, ROW_NUMBER() over (PARTITION BY country ORDER BY distance IS NULL, distance) AS rnk
+          FROM closeBirds) AS t
+        WHERE t.rnk = 1
+      ),
+      birds(id, name, distance, country) AS (
+        SELECT DISTINCT *
+        FROM distinctBirds
+        ORDER BY distance IS NULL, distance
+        LIMIT 5
+      ),
+      worldBankDataFiltered AS (
+        SELECT value, countryName, indicatorCode
+        FROM worldBankData
+        WHERE indicatorCode IN ('EN.BIR.THRD.NO', 'EN.FSH.THRD.NO', 'EN.HPT.THRD.NO', 'EN.MAM.THRD.NO', 'ER.LND.PTLD.ZS',
+                  'ER.MRN.PTMR.ZS', 'ER.PTD.TOTL.ZS')
+      ),
+      indicators(indicator, value, name, country) AS (
+        SELECT indicatorCode, value, name, country
+        FROM worldBankDataFiltered wfb JOIN birds b ON wfb.countryName = b.country
+      )
+      SELECT name, country, avg(value)
+      FROM worldBankIndicators wi JOIN indicators i ON wi.indicatorCode = i.indicator
+      GROUP BY country
+    `,
+    (err, data) => {
+      if (err || data.length === 0) {
+        console.log(err);
+        res.json(data);
+      } else {
+        res.json(data);
       }
     }
   );
@@ -361,6 +412,7 @@ module.exports = {
   randomCountryBirdAndFact,
   birdToCountry,
   birdToYear,
+  birdsCloseByCoordinate,
   genusToCountry,
   genusToYear,
   diffGenus,

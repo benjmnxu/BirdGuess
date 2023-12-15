@@ -21,6 +21,7 @@ app.get(
 );
 app.get("/birdtocountry/:bird", routes.birdToCountry);
 app.get("/birdtoyear/:bird", routes.birdToYear);
+app.get("/birdsclosebycoordinate/:id", routes.birdsCloseByCoordinate);
 app.get("/genustocountry", routes.genusToCountry);
 app.get("/genustoyear", routes.genusToYear);
 app.get("/diffgenus", routes.diffGenus);
