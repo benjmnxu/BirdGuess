@@ -26,6 +26,9 @@ export default function Home() {
   const [newCountry, setNewCountry] = useState("");
   const [newYear, setNewYear] = useState(0);
   const [newMetric, setNewMetric] = useState(0);
+  const [newBirds, setNewBirds] = useState(["", "", "", "", ""]);
+  const [newCountries, setNewCountries] = useState(["", "", "", "", ""]);
+  const [newValues, setNewValues] = useState([0, 0, 0, 0, 0]);
   const [img, setImg] = useState("");
 
   const [loading, setLoading] = useState(true);
@@ -86,6 +89,7 @@ export default function Home() {
     setLoading(true);
     setPlay(false);
     setImg("");
+    setNewBirds(["", "", "", "", ""]);
     fetch(`http://${config.server_host}:${config.server_port}/newbird`)
       .then((res) => res.json())
       .then((resJson) => {
@@ -95,6 +99,7 @@ export default function Home() {
         let vernacular = resJson["vernacularName"];
         let correctCountry = resJson["country"];
         let choices = [correctCountry];
+        let id = resJson["id"];
         fetch(
           `http://${config.server_host}:${config.server_port}/othercountries/${correctCountry}`
         )
@@ -149,6 +154,23 @@ export default function Home() {
                   .then((resJson) => {
                     setNewYear(resJson["year"]);
                     setNewMetric(resJson["totalMetricByYear"]);
+                  });
+                fetch(
+                  `http://${config.server_host}:${config.server_port}/birdsclosebycoordinate/${id}`
+                )
+                  .then((res) => res.json())
+                  .then((resJson) => {
+                    let birds: string[] = [];
+                    let countries: string[] = [];
+                    let values: number[] = [];
+                    resJson.forEach((bird: any) => {
+                      birds.push(bird["name"]);
+                      countries.push(bird["country"]);
+                      values.push(bird["value"]);
+                    });
+                    setNewBirds(birds);
+                    setNewCountries(countries);
+                    setNewValues(values);
                   });
                 openai.images
                   .generate({
@@ -213,6 +235,9 @@ export default function Home() {
                   <div className="mt-6 text-2xl font-bold">
                     The {vernacular} was recorded in {choices[correct]}
                   </div>
+                  <div className="text-base mt-2">
+                    Scientific name: {scientific}
+                  </div>
                 </div>
                 {img == "" ? (
                   <div className="ml-12 h-32 w-32 flex justify-center items-center font-bold text-sm text-center rounded-full border">
@@ -248,9 +273,32 @@ export default function Home() {
                   </div>
                   <div className="mt-4 text-base">
                     - The best environmentally-friendly year for {vernacular}{" "}
-                    was {newYear} (total biodiversity score of {newMetric})
+                    was {newYear} (total biodiversity score: {newMetric})
                   </div>
                 </div>
+              </div>
+              <div className="flex flex-col mt-24">
+                <div className="text-lg font-bold">Nearby birds</div>
+                {JSON.stringify(newBirds) ==
+                JSON.stringify(["", "", "", "", ""]) ? (
+                  <div className="mt-4">Loading nearby birds...</div>
+                ) : (
+                  <div className="mt-4 flex flex-col max-w-[60vw]">
+                    {newBirds.map((bird, index) => {
+                      return (
+                        <div key={bird}>
+                          {"- " +
+                            bird +
+                            " (" +
+                            newCountries[index] +
+                            ", biodiversity score: " +
+                            newValues[index] +
+                            ")"}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
               <button className="mt-24 btn" onClick={() => reset()}>
                 Next round

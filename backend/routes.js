@@ -53,7 +53,7 @@ const otherCountries = async function (req, res) {
     (err, data) => {
       if (err || data.length === 0) {
         console.log(err);
-        res.json({});
+        res.json([]);
       } else {
         res.json(data);
       }
@@ -230,14 +230,14 @@ const birdsCloseByCoordinate = async function (req, res) {
         SELECT indicatorCode, value, name, country
         FROM worldBankDataFiltered wfb JOIN birds b ON wfb.countryName = b.country
       )
-      SELECT name, country, avg(value)
+      SELECT name, country, avg(value) AS value
       FROM worldBankIndicators wi JOIN indicators i ON wi.indicatorCode = i.indicator
       GROUP BY country
     `,
     (err, data) => {
       if (err || data.length === 0) {
         console.log(err);
-        res.json(data);
+        res.json([]);
       } else {
         res.json(data);
       }
@@ -395,7 +395,7 @@ const regionBirdsAndFacts = async function (req, res) {
     (err, data) => {
       if (err || data.length == 0) {
         console.log(err);
-        res.json({});
+        res.json([]);
       } else {
         res.json(data);
       }
