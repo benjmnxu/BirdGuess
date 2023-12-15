@@ -13,6 +13,7 @@ app.use(
 // We use express to define our various API endpoints and
 // provide their handlers that we implemented in routes.js
 app.get("/newbird", routes.newBird);
+app.get('/otherCountries/:country', routes.otherCountries);
 app.get("/countryfact/:countryName", routes.randomCountryFact);
 app.get("/diffGenus", routes.diffGenus);
 app.get("/randomBirdAndFact/:countryName", routes.randomBirdAndFact);

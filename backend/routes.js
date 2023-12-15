@@ -202,7 +202,7 @@ const genusToEnvCountry = async function (req, res) {
 };
 
 // Route 3: GET /countryfact/:countryName
-const birdcountryfact = async function (req, res) {
+const countryfact = async function (req, res) {
   // Given a country name, return a random associated fact for that country
   const song_id = req.params.bird;
   connection.query(
@@ -230,7 +230,7 @@ const birdCountriesFacts = async function(req, res) {
     /*
     Given a bird, return countries where bird has been recorded with associated facts
     */
-    const region = req.query.bird
+    const region = req.params.bird
     const key_facts = req.params.key_facts
     const year = req.params.year
     connection.query(`
@@ -264,9 +264,29 @@ const birdCountriesFacts = async function(req, res) {
             console.log(err)
             res.json({})
         } else {
-            res.json(data)
+            res.Array(data)
         }
     });
+}
+
+const otherCountries = async function(req, res) {
+    const answer_country = req.params.country
+    console.log(answer_country)
+    connection.query(`
+    SELECT DISTINCT country
+    FROM birdData
+    WHERE country != '${answer_country}'
+    ORDER BY RAND()
+    LIMIT 3
+    `, (err, data) => {
+        if (err || data.length === 0) {
+            console.log(err);
+            res.json({});
+        } else {
+            
+            res.json(data)
+        }
+      });
 }
 
 module.exports = {
