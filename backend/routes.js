@@ -1,5 +1,6 @@
 const mysql = require("mysql");
 const config = require("./config.json");
+const coll = require('./mongo');
 
 const connection = mysql.createConnection({
   host: config.rds_host,
@@ -11,6 +12,30 @@ const connection = mysql.createConnection({
 
 connection.connect((err) => err && console.log(err));
 
+const mongoPut = async function(req, res) {
+    const user = req.params.user;
+    const genus = req.params.genus;
+    const region = req.params.region;
+    f = await coll.find({user:user}).toArray()
+    if (f.length == 0) {
+        result = await coll.insertOne({user: user, genus: [genus], region: [region]});
+    } else {
+        result = await coll.updateOne({user: user}, {$addToSet: {region: region}}, {$addToSet: {genus: genus}});
+    }
+    res.json(result);
+}
+
+const mongoGet = async function(req, res) {
+    const user = req.params.user;
+    
+    result = await coll.find({user: user}).toArray()
+    console.log(result)
+    if (result.length == 0) {
+        res.json({"ERROR": "No such user"})
+    } else {
+        res.json(result)
+    }
+}
 // Route 3: GET /countryfact/:countryName
 const randomCountryFact = async function (req, res) {
   // Given a country name, return a random associated fact for that country
@@ -45,7 +70,7 @@ const newBird = async function (req, res) {
   const random_offset = Math.floor(Math.random() * 697610);
   connection.query(
     `
-    SELECT scientificName, accessURI
+    SELECT scientificName, accessURI, country, id
     FROM birdData
     WHERE scientificName NOT IN ('${prev_names}')
         AND country NOT IN ('${prev_countries}')
@@ -230,35 +255,28 @@ const birdCountriesFacts = async function(req, res) {
     /*
     Given a bird, return countries where bird has been recorded with associated facts
     */
-    const region = req.params.bird
-    const key_facts = req.params.key_facts
-    const year = req.params.year
+    const bird = req.params.bird
+    const keyFacts = req.params.key_facts
+    const startYear = req.params.start_year
+    const endYear = req.params.end_year
     connection.query(`
     WITH tmp1(country_name) AS (
-        SELECT countryName
-        FROM countryRegion
-        WHERE region = '${region}'
+        SELECT country
+        FROM birdData
+        WHERE scientificName = '${bird}'
     ),
-        raw_birds(bird_name, country, bird_freq) AS (
-          SELECT scientificName, b.country, COUNT(1) as birdFreq
-          FROM birdData b JOIN tmp1 t ON t.country_name = b.country AND b.scientificName != 'Mystery mystery'
-          GROUP BY scientificName
+        tmp2(country, indicator_code, year, value) AS (
+            SELECT countryName, indicatorCode, year, value
+            FROM worldBankData w JOIN tmp1 t ON w.countryName = t.country_name
         ),
-        birds(bird_name, country, bird_freq, rnk) AS (
-            SELECT bird_name, country, bird_freq, ROW_NUMBER() over (PARTITION BY country order by bird_freq DESC)
-            FROM raw_birds
-        ),
-        tmp2(indicator_code, unitOfMeasure) AS (
-            SELECT indicatorCode, unitOfMeasure
-            FROM worldBankIndicators
-            WHERE indicatorName IN ${key_facts}
+        tmp3(country, indicator_code, indicator_name, value, year) AS (
+            SELECT country, wi.indicatorCode, indicatorName, value, year
+            FROM worldBankIndicators wi JOIN tmp2 t ON wi.indicatorCode = t.indicator_code
+            AND indicatorName IN (${keyFacts})
         )
-    SELECT bird_name, countryName, value, indicatorCode, bird_freq, rnk
-    FROM worldBankData w
-        JOIN tmp1 t1 ON w.countryName = t1.country_name
-        JOIN tmp2 t2 ON w.indicatorCode = t2.indicator_code
-        JOIN birds b ON b.country = t1.country_name
-    WHERE year = ${year} AND rnk = 1
+    SELECT DISTINCT *
+    FROM tmp3
+    WHERE ${startYear} <= year AND year <= ${endYear};
     `, (err, data) => {
         if (err || data.length == 0) {
             console.log(err)
@@ -289,6 +307,55 @@ const otherCountries = async function(req, res) {
       });
 }
 
+const birdsCloseByCoordinate = async function(req, res) {
+    // Find the bird id the 5 closest birds to the id bird by coordinate
+    const birdId = req.params.id
+    connection.query(`
+    WITH tmp1(longitude, latitude, country) AS (
+        SELECT longitudeDecimal, latitudeDecimal, country
+            FROM birdData
+            WHERE id = '${birdId}' AND longitudeDecimal IS NOT NULL AND latitudeDecimal IS NOT NULL
+    ),
+        closeBirds(id, name, distance, country) AS (
+            SELECT b.id, b.scientificName AS name, SQRT(POW((t.latitude - b.latitudeDecimal), 2) + POW((t.longitude - b.longitudeDecimal),2)) AS distance, b.country
+            FROM birdData b JOIN tmp1 t ON b.country != t.country
+        ),
+        distinctBirds(id, name, distance, country) AS (
+            SELECT id, name, distance, country
+            FROM (SELECT id, name, distance, country, ROW_NUMBER() over (PARTITION BY country ORDER BY distance IS NULL, distance) AS rnk
+                  FROM closeBirds) AS t
+            WHERE t.rnk = 1
+        ),
+        birds(id, name, distance, country) AS (
+            SELECT DISTINCT *
+            FROM distinctBirds
+            ORDER BY distance IS NULL, distance
+            LIMIT 5
+        ),
+        worldBankDataFiltered AS (
+            SELECT value, countryName, indicatorCode
+            FROM worldBankData
+            WHERE indicatorCode IN ('EN.BIR.THRD.NO', 'EN.FSH.THRD.NO', 'EN.HPT.THRD.NO', 'EN.MAM.THRD.NO', 'ER.LND.PTLD.ZS',
+                                   'ER.MRN.PTMR.ZS', 'ER.PTD.TOTL.ZS')
+        ),
+        indicators(indicator, value, name, country) AS (
+            SELECT indicatorCode, value, name, country
+            FROM worldBankDataFiltered wfb JOIN birds b ON wfb.countryName = b.country
+        )
+        SELECT name, country, avg(value)
+        FROM worldBankIndicators wi JOIN indicators i ON wi.indicatorCode = i.indicator
+        GROUP BY country
+    `, (err, data) => {
+        if (err || data.length === 0) {
+            console.log(err)
+            res.json(data)
+        } else {
+            res.json(data)
+        }
+    })
+
+}
+
 module.exports = {
   newBird,
   birdAndFactsByRegion,
@@ -297,6 +364,10 @@ module.exports = {
   diffGenus,
   randomBirdAndFact,
   genusToEnvCountry,
+  birdsCloseByCoordinate,
+  birdCountriesFacts,
+  mongoGet,
+  mongoPut
 };
 
 //Out of all countries the user has seen/guessed right, rank the countries by those with the most bird sounds

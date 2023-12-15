@@ -18,6 +18,9 @@ app.get("/countryfact/:countryName", routes.randomCountryFact);
 app.get("/diffGenus", routes.diffGenus);
 app.get("/randomBirdAndFact/:countryName", routes.randomBirdAndFact);
 app.get("/genusToEnvCountry", routes.genusToEnvCountry);
+app.get("/mongoPut", routes.genusToEnvCountry);
+app.get("/mongoPut/:user/:genus/:region", routes.mongoPut);
+app.get("/mongoGet/:user", routes.mongoGet);
 
 app.listen(config.server_port, () => {
   console.log(
