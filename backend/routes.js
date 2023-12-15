@@ -88,6 +88,7 @@ const countryFact = async function (req, res) {
 // Given a country, select a random bird from that country as well as a random indicator and its corresponding average value
 const randomCountryBirdAndFact = async function (req, res) {
   const country = req.params.country;
+  const bird = req.params.bird;
   connection.query(
     `
     WITH countryAverageIndicator AS (
@@ -100,13 +101,49 @@ const randomCountryBirdAndFact = async function (req, res) {
     birdNameCountry AS (
       SELECT vernacularName, country
       FROM birdData JOIN birdSpecies bS on bS.scientificName = birdData.scientificName
-      WHERE country = '${country}'
+      WHERE country = '${country}' AND vernacularName <> '${bird}'
       ORDER BY RAND()
       LIMIT 1
     )
     SELECT vernacularName, indicatorName, averageValue
     FROM birdNameCountry bc JOIN countryAverageIndicator cAI ON bc.country = cAI.countryName
     LIMIT 1;
+    `,
+    (err, data) => {
+      if (err || data.length === 0) {
+        console.log(err);
+        res.json({});
+      } else {
+        res.json(data[0]);
+      }
+    }
+  );
+};
+
+const birdToCountry = async function (req, res) {
+  const bird = req.params.bird;
+  connection.query(
+    `
+    WITH birdToCountry AS (
+      SELECT DISTINCT vernacularName, country
+      FROM birdData JOIN birdGame.birdSpecies bS on bS.scientificName = birdData.scientificName
+      WHERE vernacularName = '${bird}'
+    ),
+    countryToAverageValue AS (
+        SELECT countryName, AVG(value) averageValue
+        FROM worldBankData JOIN worldBankIndicators ON worldBankData.indicatorCode = worldBankIndicators.indicatorCode
+        WHERE topic = 'Environment: Biodiversity & protected areas'
+        GROUP BY countryName
+    ),
+    birdToCountryToValue AS (
+        SELECT vernacularName, country, RANK() OVER (PARTITION BY vernacularName ORDER BY averageValue DESC) AS rnk
+        FROM birdToCountry JOIN countryToAverageValue on birdToCountry.country = countryToAverageValue.countryName
+        ORDER BY vernacularName
+    )
+    SELECT vernacularName, country
+    FROM birdToCountryToValue
+    WHERE rnk = 1
+    GROUP BY vernacularName;
     `,
     (err, data) => {
       if (err || data.length === 0) {
@@ -129,24 +166,28 @@ const genusToCountry = async function (req, res) {
   connection.query(
     `
     WITH genusToCountry AS (
-      SELECT distinct (country) countryIn, genus
-      FROM birdData JOIN birdSpecies bS on bS.scientificName = birdData.scientificName
-      WHERE genus in ${prevGenus}
-  
+      SELECT DISTINCT genus, country
+      FROM birdData
+      JOIN birdSpecies bS ON bS.scientificName = birdData.scientificName
+      WHERE genus IN ${prevGenus}
     ),
     countryToAverageValue AS (
-      SELECT countryName, AVG(value) averageValue
-      FROM worldBankData JOIN worldBankIndicators ON worldBankData.indicatorCode = worldBankIndicators.indicatorCode
-      WHERE topic = 'Environment: Biodiversity & protected areas'
-      GROUP BY countryName
+        SELECT countryName, AVG(value) AS averageValue
+        FROM worldBankData
+        JOIN worldBankIndicators ON worldBankData.indicatorCode = worldBankIndicators.indicatorCode
+        WHERE topic = 'Environment: Biodiversity & protected areas'
+        GROUP BY countryName
     ),
     genusToCountryToValue AS (
-      SELECT genus, genusToCountry.countryIn country, averageValue
-      FROM genusToCountry JOIN countryToAverageValue on genusToCountry.countryIn = countryToAverageValue.countryName
-      ORDER BY genus
+        SELECT gtc.genus, gtc.country, cta.averageValue,
+              RANK() OVER (PARTITION BY gtc.genus ORDER BY cta.averageValue DESC) AS rnk
+        FROM genusToCountry gtc
+        JOIN countryToAverageValue cta ON gtc.country = cta.countryName
+        ORDER BY gtc.genus
     )
-    SELECT genus, country, MAX(averageValue)
+    SELECT genus, country
     FROM genusToCountryToValue
+    WHERE rnk = 1
     GROUP BY genus;
     `,
     (err, data) => {
@@ -280,6 +321,7 @@ module.exports = {
   otherCountries,
   countryFact,
   randomCountryBirdAndFact,
+  birdToCountry,
   genusToCountry,
   genusToYear,
   diffGenus,

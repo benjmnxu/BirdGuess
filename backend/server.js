@@ -15,7 +15,11 @@ app.use(
 app.get("/newbird", routes.newBird);
 app.get("/othercountries/:country", routes.otherCountries);
 app.get("/countryfact/:country", routes.countryFact);
-app.get("/randomcountrybirdandfact/:country", routes.randomCountryBirdAndFact);
+app.get(
+  "/randomcountrybirdandfact/:country/:bird",
+  routes.randomCountryBirdAndFact
+);
+app.get("/birdtocountry/:bird", routes.birdToCountry);
 app.get("/genustocountry", routes.genusToCountry);
 app.get("/genustoyear", routes.genusToYear);
 app.get("/diffgenus", routes.diffGenus);

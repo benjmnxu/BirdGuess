@@ -2,9 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { redirect } from "next/navigation";
+import Image from "next/image";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import ReactAudioPlayer from "react-audio-player";
 import { Loader } from "react-feather";
+import OpenAI from "openai";
 import Header from "../components/Header";
 const config = require("../../../backend/config.json");
 
@@ -21,6 +23,8 @@ export default function Home() {
   const [newVernacular, setNewVernacular] = useState("");
   const [newIndicator, setNewIndicator] = useState("");
   const [newValue, setNewValue] = useState(0);
+  const [newCountry, setNewCountry] = useState("");
+  const [img, setImg] = useState("");
 
   const [loading, setLoading] = useState(true);
   const [play, setPlay] = useState(false);
@@ -29,6 +33,11 @@ export default function Home() {
   const [incorrect, setIncorrect] = useState(false);
   const [guesses, setGuesses] = useState(0);
   const [endRound, setEndRound] = useState(false);
+
+  const openai = new OpenAI({
+    apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY,
+    dangerouslyAllowBrowser: true,
+  });
 
   useEffect(() => {
     reset();
@@ -72,15 +81,17 @@ export default function Home() {
     }
   }
 
-  function reset() {
+  async function reset() {
     setLoading(true);
     setPlay(false);
+    setImg("");
     fetch(`http://${config.server_host}:${config.server_port}/newbird`)
       .then((res) => res.json())
       .then((resJson) => {
         setVernacular(resJson["vernacularName"]);
         setScientific(resJson["scientificName"]);
         setAudio(resJson["accessURI"]);
+        let vernacular = resJson["vernacularName"];
         let correctCountry = resJson["country"];
         let choices = [correctCountry];
         fetch(
@@ -115,13 +126,36 @@ export default function Home() {
                 setPlay(true);
                 setLoading(false);
                 fetch(
-                  `http://${config.server_host}:${config.server_port}/randomcountrybirdandfact/${correctCountry}`
+                  `http://${config.server_host}:${config.server_port}/randomcountrybirdandfact/${correctCountry}/${vernacular}`
                 )
                   .then((res) => res.json())
                   .then((resJson) => {
                     setNewVernacular(resJson["vernacularName"]);
                     setNewIndicator(resJson["indicatorName"]);
                     setNewValue(resJson["averageValue"]);
+                  });
+                fetch(
+                  `http://${config.server_host}:${config.server_port}/birdtocountry/${vernacular}`
+                )
+                  .then((res) => res.json())
+                  .then((resJson) => {
+                    setNewCountry(resJson["country"]);
+                    console.log(resJson);
+                  });
+                openai.images
+                  .generate({
+                    prompt:
+                      "The bird" +
+                      vernacular +
+                      " (" +
+                      scientific +
+                      ") " +
+                      " in its natural habitat in " +
+                      choices[correct],
+                  })
+                  .then((res: any) => {
+                    setImg(res.data[0]["url"]);
+                    console.log(res.data[0]["url"]);
                   });
               });
           });
@@ -160,30 +194,60 @@ export default function Home() {
           </button>
         </div>
       ) : (
-        <div className="mt-16 md:mt-32 mb-24 md:mb-40 container mx-auto max-w-screen-lg px-6 flex flex-col items-center">
+        <div className="mt-12 md:mt-24 mb-12 md:mb-24 container mx-auto max-w-screen-lg px-6 flex flex-col items-center">
           <ReactAudioPlayer src={audio} autoPlay={play} controls />
           {endRound ? (
-            <div className="flex flex-col items-center">
-              <div className="mt-12 text-lg">
-                You got it! You used <b>{guesses} / 4</b> guesses
+            <div className="mt-12 flex flex-col items-center">
+              <div className="flex items-center">
+                <div className="flex flex-col justify-center items-start">
+                  <div className="text-lg">
+                    You got it! You used <b>{guesses} / 4</b> guesses
+                  </div>
+                  <div className="mt-6 text-2xl font-bold">
+                    {vernacular} was recorded in {choices[correct]}
+                  </div>
+                </div>
+                {img == "" ? (
+                  <div className="ml-12 h-32 w-32 flex justify-center items-center font-bold text-sm text-center rounded-full border">
+                    Generating image...
+                  </div>
+                ) : (
+                  <Image
+                    className="ml-12 rounded-full"
+                    src={img}
+                    alt=""
+                    width={128}
+                    height={128}
+                  />
+                )}
               </div>
-              <div className="mt-6 text-4xl font-bold">
-                {vernacular} was recorded in {choices[correct]}
+              <div className="flex mt-24">
+                <div className="max-w-[30vw] flex flex-col justify-start items-start">
+                  <div className="text-lg font-bold">Country facts</div>
+                  <div className="mt-4 = text-base">
+                    - Did you know that the {newVernacular} has also been
+                    recorded in {choices[correct]}?
+                  </div>
+                  <div className="mt-4 text-base">
+                    - In {choices[correct]}, the average {newIndicator} is{" "}
+                    {newValue}
+                  </div>
+                </div>
+                <div className="max-w-[30vw] ml-24 flex flex-col justify-start items-start">
+                  <div className="text-lg font-bold">Bird facts</div>
+                  <div className="mt-4 text-base">
+                    - The best environmentally-friendly country for {vernacular}{" "}
+                    is {newCountry}
+                  </div>
+                </div>
               </div>
-              <div className="mt-6 text-lg">Country facts</div>
-              <div className="mt-6 text-lg">
-                {newVernacular} has also been recorded in {choices[correct]}
-              </div>
-              <div className="mt-6 text-lg">
-                In {choices[correct]}, the average {newIndicator} is {newValue}
-              </div>
-              <button className="mt-12 btn" onClick={() => reset()}>
+              <button className="mt-24 btn" onClick={() => reset()}>
                 Next round
               </button>
             </div>
           ) : (
             <div className="flex flex-col items-center">
-              <div className="mt-12 text-4xl font-bold">
+              <div className="mt-24 text-4xl font-bold">
                 Where was the bird recorded?
               </div>
               <div className="mt-8 text-lg text-center">

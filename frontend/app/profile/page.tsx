@@ -19,7 +19,7 @@ export default function Home() {
   return (
     <div className="h-full text-text-primary">
       <Header />
-      <div className="mt-16 md:mt-32 mb-24 md:mb-40 container mx-auto max-w-screen-lg px-6 flex flex-col items-center">
+      <div className="mt-12 md:mt-24 mb-12 md:mb-24 container mx-auto max-w-screen-lg px-6 flex flex-col items-center">
         <div className="mb-8 flex flex-col items-center text-sm md:text-base">
           <div className="mb-4 w-24 aspect-square relative">
             <Image
