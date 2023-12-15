@@ -36,7 +36,7 @@ export default function Home() {
           <div className="text-base">{user?.nickname}</div>
         </div>
         <a href="/api/auth/logout">
-          <button className="btn-small md:btn">Logout</button>
+          <button className="btn">Logout</button>
         </a>
       </div>
     </div>

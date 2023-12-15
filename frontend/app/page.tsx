@@ -24,9 +24,7 @@ export default function Home() {
           </h2>
           <div className="flex flex-row justify-center">
             <Link href="/game">
-              <button className="btn-small md:btn">
-                {user ? "Play" : "Login"}
-              </button>
+              <button className="btn">{user ? "Play" : "Login"}</button>
             </Link>
           </div>
         </div>

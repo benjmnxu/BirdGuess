@@ -63,19 +63,6 @@ module.exports = {
             boxShadow: "inset 0 0 4rem 0 #ffffff20",
           },
         },
-        ".btn-small": {
-          minWidth: "8rem",
-          minHeight: "2.5rem",
-          borderRadius: "1.25rem",
-          color: "#000000",
-          fontWeight: "700",
-          fontSize: "0.875rem",
-          background: "#ff8a00",
-          transitionDuration: "300ms",
-          "&:hover": {
-            boxShadow: "inset 0 0 4rem 0 #ffffff10",
-          },
-        },
         ".btn-wide-white": {
           width: "100%",
           minHeight: "3rem",

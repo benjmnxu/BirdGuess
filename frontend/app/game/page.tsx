@@ -153,15 +153,12 @@ export default function Home() {
             <div className="flex flex-col items-center">
               <div className="mt-12 text-lg">You got it!</div>
               <div className="mt-6 text-4xl font-bold">
-                The bird was recorded in {choices[correct]}
+                {bird} was recorded in {choices[correct]}
               </div>
               <div className="mt-6 text-lg">
                 You used <b>{guesses} / 4</b> guesses
               </div>
-              <button
-                className="mt-12 btn-small md:btn"
-                onClick={() => reset()}
-              >
+              <button className="mt-12 btn" onClick={() => reset()}>
                 Next round
               </button>
             </div>
