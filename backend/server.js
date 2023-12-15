@@ -26,6 +26,7 @@ app.get("/genustocountry", routes.genusToCountry);
 app.get("/genustoyear", routes.genusToYear);
 app.get("/diffgenus", routes.diffGenus);
 app.get("/regionbirdsandfacts", routes.regionBirdsAndFacts);
+app.get("/diffregion", routes.diffRegion);
 
 app.listen(config.server_port, () => {
   console.log(

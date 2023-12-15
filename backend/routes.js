@@ -403,7 +403,25 @@ const regionBirdsAndFacts = async function (req, res) {
   );
 };
 
-// todo: diff region
+// Given a list of regions, find all regions that have yet to be found
+const diffRegion = async function (req, res) {
+  const prevRegions = Array.isArray(req.params.prev_regions);
+  connection.query(
+    `
+    SELECT region
+    FROM countryRegion
+    WHERE region NOT IN ('${prev_regions}')
+    `,
+    (err, data) => {
+      if (err || data.length === 0) {
+        console.log(err);
+        res.json({});
+      } else {
+        res.json(data[0]);
+      }
+    }
+  );
+};
 
 module.exports = {
   newBird,
@@ -417,4 +435,5 @@ module.exports = {
   genusToYear,
   diffGenus,
   regionBirdsAndFacts,
+  diffRegion,
 };
