@@ -14,7 +14,7 @@ connection.connect((err) => err && console.log(err));
 // Route 3: GET /countryfact/:countryName
 const randomCountryFact = async function (req, res) {
   // Given a country name, return a random associated fact for that country
-  const song_id = req.params.bird;
+  const countryName = req.params.countryName;
   connection.query(
     `
     SELECT wbd.indicatorCode, countryName, year, value, indicatorName
@@ -105,25 +105,20 @@ const birdAndFactsByRegion = async function (req, res) {
   );
 };
 
-//Given a genus, return species, location, and number of times
-const getSpeciesLocation = async function (req, res) {
-  // Given a country name, return a random associated fact for that country
-  const song_id = req.params.bird;
+// Given a list of genus, find all genus that have yet to be found
+const diffGenus = async function (req, res) {
+  const prev_genus = Array.isArray(req.params.prev_genus);
   connection.query(
     `
-    SELECT wbd.indicatorCode, countryName, year, value, indicatorName
-    FROM worldBankData wbd JOIN worldBankIndicators wbi ON wbd.indicatorCode = wbi.indicatorCode
-    WHERE countryName = '${countryName}'
-    ORDER BY RAND()
-    LIMIT 1
+    SELECT *
+    FROM birdSpecies
+    WHERE genus NOT IN ('${prev_genus}')
   `,
     (err, data) => {
       if (err || data.length === 0) {
-        console.log("I am actually here");
         console.log("this is the error" + err);
         res.json({});
       } else {
-        console.log("I am here");
         res.json(data[0]);
       }
     }
@@ -134,6 +129,7 @@ module.exports = {
   newBird,
   birdAndFactsByRegion,
   randomCountryFact,
+  diffGenus,
 };
 
 //Out of all countries the user has seen/guessed right, rank the countries by those with the most bird sounds
