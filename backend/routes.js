@@ -17,7 +17,7 @@ const randomCountryFact = async function (req, res) {
   const countryName = req.params.countryName;
   connection.query(
     `
-    SELECT wbd.indicatorCode, countryName, year, value, indicatorName
+    SELECT countryName, year, value, indicatorName
     FROM worldBankData wbd JOIN worldBankIndicators wbi ON wbd.indicatorCode = wbi.indicatorCode
     WHERE countryName = '${countryName}'
     ORDER BY RAND()
@@ -42,16 +42,36 @@ const newBird = async function (req, res) {
     req.query.prevNames === undefined ? "" : req.query.prevNames;
   const prev_countries =
     req.query.prevCountries === undefined ? "" : req.query.prevCountries;
-  const random_offset = Math.floor(Math.random() * 697610);
   connection.query(
     `
-    SELECT scientificName, accessURI
+    SELECT scientificName, country, accessURI
     FROM birdData
     WHERE scientificName NOT IN ('${prev_names}')
         AND country NOT IN ('${prev_countries}')
     ORDER BY RAND()
     LIMIT 1
     `,
+    (err, data) => {
+      if (err || data.length === 0) {
+        console.log(err);
+        res.json({});
+      } else {
+        res.json(data[0]);
+      }
+    }
+  );
+};
+
+const otherCountries = async function (req, res) {
+  const answer_country = req.params.country;
+  connection.query(
+    `
+  SELECT DISTINCT country
+  FROM birdData
+  WHERE country != '${answer_country}'
+  ORDER BY RAND()
+  LIMIT 3
+  `,
     (err, data) => {
       if (err || data.length === 0) {
         console.log(err);
