@@ -226,14 +226,15 @@ const birdcountryfact = async function (req, res) {
   );
 };
 
-const birdCountriesFacts = async function(req, res) {
-    /*
+const birdCountriesFacts = async function (req, res) {
+  /*
     Given a bird, return countries where bird has been recorded with associated facts
     */
-    const region = req.query.bird
-    const key_facts = req.params.key_facts
-    const year = req.params.year
-    connection.query(`
+  const region = req.query.bird;
+  const key_facts = req.params.key_facts;
+  const year = req.params.year;
+  connection.query(
+    `
     WITH tmp1(country_name) AS (
         SELECT countryName
         FROM countryRegion
@@ -259,15 +260,59 @@ const birdCountriesFacts = async function(req, res) {
         JOIN tmp2 t2 ON w.indicatorCode = t2.indicator_code
         JOIN birds b ON b.country = t1.country_name
     WHERE year = ${year} AND rnk = 1
-    `, (err, data) => {
-        if (err || data.length == 0) {
-            console.log(err)
-            res.json({})
-        } else {
-            res.json(data)
-        }
-    });
-}
+    `,
+    (err, data) => {
+      if (err || data.length == 0) {
+        console.log(err);
+        res.json({});
+      } else {
+        res.json(data);
+      }
+    }
+  );
+};
+
+// # For the bird genuses seen already,
+// # record the year in which the countries they were in had the highest values summed values
+// # for metrics under the Environment: Biodiversity & protected areas topic
+const genusToYear = async function (req, res) {
+  const genusesSeen = Array.isArray(req.params.genusesSeen);
+  connection.query(
+    `
+    WITH genusToCountry AS (
+      SELECT distinct (country) countryIn, genus
+      FROM birdData JOIN birdSpecies bS on bS.scientificName = birdData.scientificName
+      WHERE genus in ${genusesSeen}
+  ), countryBSTValue AS (
+      SELECT countryName, year, SUM(value) totalMetric
+      FROM worldBankData JOIN birdGame.worldBankIndicators wBI on wBI.indicatorCode = worldBankData.indicatorCode
+      WHERE topic = 'Environment: Biodiversity & protected areas' and year <> 2018
+      GROUP BY countryName, year
+      ORDER BY countryName
+  ), genusToTotalMetric AS (
+      SELECT genus, countryName, year, totalMetric
+      FROM genusToCountry JOIN countryBSTValue ON genusToCountry.countryIn = countryBSTValue.countryName
+      ORDER BY genus
+  ), genusToYearToMetric AS (
+      SELECT genus, year, SUM(totalMetric) totalMetricByYear, RANK() OVER (PARTITION BY genus ORDER BY SUM(totalMetric) DESC) as rnk
+      FROM genusToTotalMetric
+      GROUP BY genus, year
+      ORDER BY genus
+  )
+  SELECT genus, year, totalMetricByYear
+  FROM genusToYearToMetric
+  WHERE rnk = 1;
+  `,
+    (err, data) => {
+      if (err || data.length === 0) {
+        console.log("this is the error" + err);
+        res.json({});
+      } else {
+        res.json(data[0]);
+      }
+    }
+  );
+};
 
 module.exports = {
   newBird,
@@ -277,6 +322,7 @@ module.exports = {
   diffGenus,
   randomBirdAndFact,
   genusToEnvCountry,
+  genusToYear,
 };
 
 //Out of all countries the user has seen/guessed right, rank the countries by those with the most bird sounds
