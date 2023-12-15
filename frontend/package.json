@@ -15,7 +15,8 @@
     "next": "14.0.4",
     "react": "^18",
     "react-audio-player": "^0.17.0",
-    "react-dom": "^18"
+    "react-dom": "^18",
+    "react-feather": "^2.0.10"
   },
   "devDependencies": {
     "@types/node": "^20",
