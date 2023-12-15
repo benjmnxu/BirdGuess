@@ -427,9 +427,9 @@ const diffRegion = async function (req, res) {
 // MongoDB
 
 const mongoPut = async function (req, res) {
-  const user = req.params.user;
-  const genus = req.params.genus;
-  const region = req.params.region;
+  const user = req.query.user;
+  const genus = req.query.genus;
+  const region = req.query.region;
   f = await coll.find({ user: user }).toArray();
   if (f.length == 0) {
     result = await coll.insertOne({
@@ -440,15 +440,14 @@ const mongoPut = async function (req, res) {
   } else {
     result = await coll.updateOne(
       { user: user },
-      { $addToSet: { region: region } },
-      { $addToSet: { genus: genus } }
+      { $addToSet: { region: region, genus: genus } }
     );
   }
   res.json(result);
 };
 
 const mongoGet = async function (req, res) {
-  const user = req.params.user;
+  const user = req.query.user;
 
   result = await coll.find({ user: user }).toArray();
   console.log(result);

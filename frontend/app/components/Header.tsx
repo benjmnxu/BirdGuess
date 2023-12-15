@@ -7,16 +7,18 @@ export default function Header() {
   const { user, error, isLoading } = useUser();
   return (
     <div className="absolute top-0 left-0 right-0 z-10 container mx-auto max-w-screen-xl px-6 flex justify-between items-center my-4 md:my-6 bg-background-primary text-text-primary">
-      <Link href="/" className="md:text-xl font-bold text-left">
+      <Link href="/" className="text-xl font-bold text-left">
         Bird
         <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary-alt">
           hub
         </span>
       </Link>
       {user ? (
-        <Link href="/profile">
-          <div className="flex justify-end items-center text-sm md:text-base">
-            <div className="text-sm">{user?.nickname}</div>
+        <div className="flex items-center">
+          <Link href="/review" className="mr-24 text-sm md:text-base">
+            Review
+          </Link>
+          <Link href="/profile">
             <div className="ml-4 w-8 aspect-square relative">
               <Image
                 src={user.picture!}
@@ -29,8 +31,8 @@ export default function Header() {
                 }}
               />
             </div>
-          </div>
-        </Link>
+          </Link>
+        </div>
       ) : (
         <div></div>
       )}

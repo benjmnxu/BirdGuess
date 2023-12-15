@@ -98,8 +98,10 @@ export default function Home() {
         setAudio(resJson["accessURI"]);
         let vernacular = resJson["vernacularName"];
         let correctCountry = resJson["country"];
-        let choices = [correctCountry];
+        let genus = resJson["genus"];
         let id = resJson["id"];
+        let choices = [correctCountry];
+
         fetch(
           `http://${config.server_host}:${config.server_port}/othercountries/${correctCountry}`
         )
@@ -172,6 +174,12 @@ export default function Home() {
                     setNewCountries(countries);
                     setNewValues(values);
                   });
+                fetch(
+                  `http://${config.server_host}:${config.server_port}/mongoput?user=${user?.email}&genus=${genus}&region=bruh`,
+                  {
+                    method: "POST",
+                  }
+                );
                 openai.images
                   .generate({
                     prompt:
