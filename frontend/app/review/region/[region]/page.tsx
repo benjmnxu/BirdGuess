@@ -19,7 +19,7 @@ export default function Region({ params }: { params: { region: string } }) {
 
   useEffect(() => {
     fetch(
-      `http://${config.server_host}:${config.server_port}/regionbirdsandfacts?region=${params.region}&facts='GDP (current US$)','GDP per capita (current US$)','Land area (sq. km)','CO2 emissions (metric tons per capita)','Cereal production (metric tons)'`
+      `http://${config.server_host}:${config.server_port}/regionbirdsandfacts?region=${params.region}&facts='GDP (current US$)','GDP per capita (current US$)','Land area (sq. km)','Cereal production (metric tons)'`
     )
       .then((res) => res.json())
       .then((resJson) => {
@@ -71,7 +71,7 @@ export default function Region({ params }: { params: { region: string } }) {
             {params.region.replaceAll("%20", " ").replaceAll("%26", "&")}
           </div>
           {countries.map((c, i) => {
-            if (i % 5 == 0) {
+            if (i % 4 == 0) {
               return (
                 <div className="mb-8 flex flex-col">
                   <div className="font-bold">{c}</div>
@@ -88,9 +88,6 @@ export default function Region({ params }: { params: { region: string } }) {
                   </div>
                   <div>
                     {indicators[i + 3]}: {values[i + 3]}
-                  </div>
-                  <div>
-                    {indicators[i + 4]}: {values[i + 4]}
                   </div>
                 </div>
               );

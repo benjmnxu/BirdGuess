@@ -176,7 +176,11 @@ export default function Game() {
                     setNewValues(values);
                   });
                 fetch(
-                  `http://${config.server_host}:${config.server_port}/mongoput?user=${user?.email}&genus=${genus}&region=${region}`,
+                  `http://${config.server_host}:${
+                    config.server_port
+                  }/mongoput?user=${
+                    user?.email
+                  }&genus=${genus}&region=${region.replaceAll("&", "%26")}`,
                   {
                     method: "POST",
                   }

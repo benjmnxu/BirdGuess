@@ -47,7 +47,7 @@ export default function Review() {
                 `http://${config.server_host}:${
                   config.server_port
                 }/diffregion/?prev_regions=${region.map(
-                  (r: any) => "'" + r + "'"
+                  (r: any) => "'" + r.replaceAll("&", "%26") + "'"
                 )}`
               )
                 .then((res) => res.json())
