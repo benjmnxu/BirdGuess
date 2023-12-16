@@ -10,7 +10,7 @@ import OpenAI from "openai";
 import Header from "../components/Header";
 const config = require("../../../backend/config.json");
 
-export default function Home() {
+export default function Game() {
   const { user, error, isLoading } = useUser();
   const [vernacular, setVernacular] = useState("");
   const [scientific, setScientific] = useState("");

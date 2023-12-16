@@ -15,7 +15,10 @@ export default function Header() {
       </Link>
       {user ? (
         <div className="flex items-center">
-          <Link href="/review" className="mr-24 text-sm md:text-base">
+          <Link
+            href="/review"
+            className="mr-24 font-medium text-sm md:text-base"
+          >
             Review
           </Link>
           <Link href="/profile">

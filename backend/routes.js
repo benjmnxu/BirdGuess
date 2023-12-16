@@ -336,19 +336,21 @@ const genusToYear = async function (req, res) {
 
 // Given a list of genus, find all genus that have yet to be found
 const diffGenus = async function (req, res) {
-  const prevGenus = Array.isArray(req.params.prev_genus);
+  const prevGenus = req.query.prev_genus;
   connection.query(
     `
-    SELECT *
+    SELECT DISTINCT genus
     FROM birdSpecies
-    WHERE genus NOT IN ('${prevGenus}')
+    WHERE genus NOT IN (${prevGenus})
+    ORDER BY RAND()
+    LIMIT 10
     `,
     (err, data) => {
       if (err || data.length === 0) {
         console.log(err);
-        res.json({});
+        res.json([]);
       } else {
-        res.json(data[0]);
+        res.json(data);
       }
     }
   );
@@ -358,7 +360,7 @@ const diffGenus = async function (req, res) {
 // in that region as well as the associated indicator values (as specified)
 const regionBirdsAndFacts = async function (req, res) {
   const region = req.query.region;
-  const facts = Array.isArray(req.params.facts);
+  const facts = Array.isArray(req.query.facts);
   connection.query(
     `
     WITH tmp1(country_name) AS (
@@ -406,19 +408,21 @@ const regionBirdsAndFacts = async function (req, res) {
 
 // Given a list of regions, find all regions that have yet to be found
 const diffRegion = async function (req, res) {
-  const prevRegions = Array.isArray(req.params.prev_regions);
+  const prevRegions = req.query.prev_regions;
   connection.query(
     `
-    SELECT region
+    SELECT DISTINCT region
     FROM countryRegion
-    WHERE region NOT IN ('${prev_regions}')
+    WHERE region NOT IN (${prevRegions})
+    ORDER BY RAND()
+    LIMIT 10
     `,
     (err, data) => {
       if (err || data.length === 0) {
         console.log(err);
-        res.json({});
+        res.json([]);
       } else {
-        res.json(data[0]);
+        res.json(data);
       }
     }
   );
@@ -450,11 +454,10 @@ const mongoGet = async function (req, res) {
   const user = req.query.user;
 
   result = await coll.find({ user: user }).toArray();
-  console.log(result);
   if (result.length == 0) {
     res.json({ ERROR: "No such user" });
   } else {
-    res.json(result);
+    res.json(result[0]);
   }
 };
 
@@ -470,7 +473,7 @@ module.exports = {
   genusToYear,
   diffGenus,
   regionBirdsAndFacts,
+  diffRegion,
   mongoPut,
   mongoGet,
-  diffRegion,
 };

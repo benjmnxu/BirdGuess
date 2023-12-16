@@ -6,7 +6,7 @@ import { redirect } from "next/navigation";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import Header from "../components/Header";
 
-export default function Home() {
+export default function Profile() {
   const { user, error, isLoading } = useUser();
 
   useEffect(() => {
