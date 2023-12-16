@@ -5,12 +5,12 @@ module.exports = {
   content: ["./app/**/*.{js,ts,jsx,tsx}", "./components/**/*.{js,ts,jsx,tsx}"],
   theme: {
     colors: {
-      primary: "#ff8a00",
-      "primary-alt": "#ef6000",
+      primary: "#8aff00",
+      "primary-alt": "#60ef00",
       secondary: "#181c80",
       "secondary-alt": "#0f0e43",
       "background-light": "#06092b",
-      background: "#ff8a00",
+      background: "#8aff00",
       "text-primary": "#ffffff",
       "text-secondary": "#000000",
       blur: "#b99ee7",
@@ -22,7 +22,7 @@ module.exports = {
     },
     borderColor: {
       DEFAULT: "#ffffff10",
-      primary: "#ff8a00",
+      primary: "#8aff00",
     },
     borderRadius: {
       DEFAULT: "0.75rem",
@@ -57,7 +57,7 @@ module.exports = {
           color: "#000000",
           fontWeight: "700",
           fontSize: "0.875rem",
-          background: "#ff8a00",
+          background: "#8aff00",
           transitionDuration: "300ms",
           "&:hover": {
             boxShadow: "inset 0 0 4rem 0 #ffffff20",
@@ -73,17 +73,17 @@ module.exports = {
           background: "#ffffff",
           transitionDuration: "300ms",
           "&:hover": {
-            boxShadow: "inset 0 0 4rem 0 #ff8a0080",
+            boxShadow: "inset 0 0 4rem 0 #8aff0080",
           },
         },
-        ".btn-wide-orange": {
+        ".btn-wide-green": {
           width: "100%",
           minHeight: "3rem",
           borderRadius: "1.5rem",
           color: "#000000",
           fontWeight: "700",
           fontSize: "0.875rem",
-          background: "#ff8a00",
+          background: "#8aff00",
           transitionDuration: "300ms",
           "&:hover": {
             boxShadow: "inset 0 1rem 2rem 0 #ffffff20",

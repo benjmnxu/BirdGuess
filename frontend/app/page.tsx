@@ -15,8 +15,8 @@ export default function Home() {
         <div className="flex flex-col justify-center items-start">
           <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-7xl font-bold text-center">
             Bird
-            <span className="bg-primary text-text-secondary bg-gradient-to-r from-primary to-primary-alt rounded px-2 ml-2">
-              hub
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary-alt">
+              Guess
             </span>
           </h1>
           <h2 className="my-12 text-base md:text-lg font-medium">
@@ -38,7 +38,7 @@ export default function Home() {
           >
             <Spline
               className="scale-100"
-              scene="https://prod.spline.design/phTIfkK0aTjd8XvB/scene.splinecode"
+              scene="https://prod.spline.design/6Izjah8jWe-79F53/scene.splinecode"
             />
           </div>
           <div className="mt-2 text-xs">try moving with WASD {":)"}</div>

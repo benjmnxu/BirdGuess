@@ -99,6 +99,7 @@ export default function Game() {
         let vernacular = resJson["vernacularName"];
         let correctCountry = resJson["country"];
         let genus = resJson["genus"];
+        let region = resJson["region"];
         let id = resJson["id"];
         let choices = [correctCountry];
 
@@ -175,7 +176,7 @@ export default function Game() {
                     setNewValues(values);
                   });
                 fetch(
-                  `http://${config.server_host}:${config.server_port}/mongoput?user=${user?.email}&genus=${genus}&region=bruh`,
+                  `http://${config.server_host}:${config.server_port}/mongoput?user=${user?.email}&genus=${genus}&region=${region}`,
                   {
                     method: "POST",
                   }
@@ -223,7 +224,7 @@ export default function Game() {
         <div className="mt-48 md:mt-72 mb-24 md:mb-40 container mx-auto max-w-screen-lg px-6 flex flex-col items-center">
           <button
             type="button"
-            className="btn flex justify-center items-center"
+            className="btn flex justify-center items-center animate-pulse"
             disabled
           >
             <Loader className="mr-4 animate-spin" />
@@ -276,11 +277,11 @@ export default function Game() {
                 <div className="max-w-[30vw] ml-24 flex flex-col justify-start items-start">
                   <div className="text-lg font-bold">Bird facts</div>
                   <div className="mt-4 text-base">
-                    - The best environmentally-friendly country for {vernacular}{" "}
+                    - The most environmentally-friendly country for {vernacular}{" "}
                     is {newCountry}
                   </div>
                   <div className="mt-4 text-base">
-                    - The best environmentally-friendly year for {vernacular}{" "}
+                    - The most environmentally-friendly year for {vernacular}{" "}
                     was {newYear} (total biodiversity score: {newMetric})
                   </div>
                 </div>
@@ -328,7 +329,7 @@ export default function Game() {
                       className={
                         (chosen[index]
                           ? index == correct
-                            ? "btn-wide-orange"
+                            ? "btn-wide-green"
                             : "btn-wide-red"
                           : "btn-wide-white") +
                         (shake[index] ? " animate-wiggle" : "")

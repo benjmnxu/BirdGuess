@@ -30,7 +30,7 @@ export default function Region({ params }: { params: { region: string } }) {
         <div className="mt-48 md:mt-72 mb-24 md:mb-40 container mx-auto max-w-screen-lg px-6 flex flex-col items-center">
           <button
             type="button"
-            className="btn flex justify-center items-center"
+            className="btn flex justify-center items-center animate-pulse"
             disabled
           >
             <Loader className="mr-4 animate-spin" />

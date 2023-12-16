@@ -10,7 +10,7 @@ export default function Header() {
       <Link href="/" className="text-xl font-bold text-left">
         Bird
         <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary-alt">
-          hub
+          Guess
         </span>
       </Link>
       {user ? (

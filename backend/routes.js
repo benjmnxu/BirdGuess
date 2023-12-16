@@ -16,18 +16,34 @@ connection.connect((err) => err && console.log(err));
 
 // Given the previous birds and previous countries, return a new bird
 const newBird = async function (req, res) {
-  const prev_names =
-    req.query.prevNames === undefined ? "" : req.query.prevNames;
-  const prev_countries =
-    req.query.prevCountries === undefined ? "" : req.query.prevCountries;
+  const prevNames =
+    req.query.prev_names === undefined ? "''" : req.query.prev_names;
+  const prevCountries =
+    req.query.prev_countries === undefined ? "''" : req.query.prev_countries;
   connection.query(
     `
-    SELECT vernacularName, genus, bS.scientificName, country, accessURI, id
-    FROM birdData join birdGame.birdSpecies bS on bS.scientificName = birdData.scientificName
-    WHERE bS.scientificName NOT IN ('${prev_names}')
-      AND country NOT IN ('${prev_countries}')
-    ORDER BY RAND()
-    LIMIT 1
+    WITH tmp (id, name, country, accessURI) AS (
+      SELECT id, scientificName, country, accessURI
+      FROM birdData
+      WHERE scientificName NOT IN (${prevNames}) AND country NOT IN (${prevCountries})
+    ),
+    tmp1(id, vernacularName, genus, scientificName, country, accessURI) AS (
+        SELECT id, vernacularName, genus, scientificName, country, accessURI
+        FROM birdSpecies bS JOIN tmp t ON bS.scientificName = t.name
+    ),
+    regions(country, region) AS (
+        SELECT country, region
+        FROM tmp t JOIN countryRegion cR ON t.country = cR.countryName
+    ),
+    bird(id, vernacularName, genus, scientificName, country, accessURI) AS (
+        SELECT *
+        FROM tmp1
+        ORDER BY RAND()
+        LIMIT 1
+    )
+    SELECT id, vernacularName, genus, scientificName, b.country, region, accessURI
+    FROM bird b JOIN regions r ON b.country = r.country
+    LIMIT 1;
     `,
     (err, data) => {
       if (err || data.length === 0) {
@@ -252,14 +268,14 @@ const birdsCloseByCoordinate = async function (req, res) {
 // list the genus name and the country with the max average value across metrics in the
 // category of 'Environment: Biodiversity & protected areas' for that genus, order the results by genus name
 const genusToCountry = async function (req, res) {
-  const prevGenus = Array.isArray(req.params.prev_genus);
+  const prevGenus = req.query.prev_genus;
   connection.query(
     `
     WITH genusToCountry AS (
       SELECT DISTINCT genus, country
       FROM birdData
       JOIN birdSpecies bS ON bS.scientificName = birdData.scientificName
-      WHERE genus IN ${prevGenus}
+      WHERE genus IN (${prevGenus})
     ),
     countryToAverageValue AS (
         SELECT countryName, AVG(value) AS averageValue
@@ -293,13 +309,13 @@ const genusToCountry = async function (req, res) {
 
 // Given a list of genus we have seen, what year was the best for the bird?
 const genusToYear = async function (req, res) {
-  const prevGenus = Array.isArray(req.params.prev_genus);
+  const prevGenus = req.query.prev_genus;
   connection.query(
     `
     WITH genusToCountry AS (
       SELECT distinct (country) countryIn, genus
       FROM birdData JOIN birdSpecies bS on bS.scientificName = birdData.scientificName
-      WHERE genus in ${prevGenus}
+      WHERE genus in (${prevGenus})
     ),
     countryBSTValue AS (
       SELECT countryName, year, SUM(value) totalMetric
@@ -343,7 +359,7 @@ const diffGenus = async function (req, res) {
     FROM birdSpecies
     WHERE genus NOT IN (${prevGenus})
     ORDER BY RAND()
-    LIMIT 10
+    LIMIT 8
     `,
     (err, data) => {
       if (err || data.length === 0) {
@@ -414,8 +430,6 @@ const diffRegion = async function (req, res) {
     SELECT DISTINCT region
     FROM countryRegion
     WHERE region NOT IN (${prevRegions})
-    ORDER BY RAND()
-    LIMIT 10
     `,
     (err, data) => {
       if (err || data.length === 0) {
