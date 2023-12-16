@@ -8,3 +8,5 @@ SQL - alter table - 3NF decomposition and add constraints.docx
 CIS4500_5500_Project_investigating_failed_indicatorCode_foreign_key_constraint.ipynb
 CIS4500_5500_country_and_region_data_cleaning.ipynb
 SQL - create countryRegion and entity resolution continued.docx
+CIS4500_5500_project_identifying_unpaired_entities
+SQL - add birdData foreign key country REFERENCES countryRegion (countryName).txt

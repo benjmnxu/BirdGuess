@@ -1,0 +1,14 @@
+INSERT INTO countryRegion(countryName, region) 
+VALUES (‘Antarctica’, ‘Antarctica’);
+
+INSERT INTO countryRegion(countryName, region) 
+VALUES (‘French Guiana’, ‘Latin America & Caribbean’);
+
+INSERT INTO countryRegion(countryName, region) 
+VALUES (‘Macedonia’, ‘Europe & Central Asia’);
+
+INSERT INTO countryRegion(countryName, region) 
+VALUES (‘Taiwan’, ‘East Asia & Pacific’);
+
+ALTER TABLE birdSpecies
+	ADD FOREIGN KEY (country) REFERENCES countryRegion (countryName);
