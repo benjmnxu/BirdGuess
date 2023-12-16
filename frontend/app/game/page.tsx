@@ -66,6 +66,7 @@ export default function Game() {
     if (index == correct) {
       setEndRound(true);
     } else {
+      // fetch new country fact
       fetch(
         `http://${config.server_host}:${config.server_port}/countryfact/${choices[correct]}`
       )
@@ -90,6 +91,7 @@ export default function Game() {
     setPlay(false);
     setImg("");
     setNewBirds(["", "", "", "", ""]);
+    // fetch new bird
     fetch(`http://${config.server_host}:${config.server_port}/newbird`)
       .then((res) => res.json())
       .then((resJson) => {
@@ -102,7 +104,7 @@ export default function Game() {
         let region = resJson["region"];
         let id = resJson["id"];
         let choices = [correctCountry];
-
+        // fetch other country options
         fetch(
           `http://${config.server_host}:${config.server_port}/othercountries/${correctCountry}`
         )
@@ -118,6 +120,7 @@ export default function Game() {
                 return el == correctCountry;
               })
             );
+            // fetch country fact
             fetch(
               `http://${config.server_host}:${config.server_port}/countryfact/${correctCountry}`
             )
@@ -134,6 +137,7 @@ export default function Game() {
                 setEndRound(false);
                 setPlay(true);
                 setLoading(false);
+                // fetch another random bird from country and fact
                 fetch(
                   `http://${config.server_host}:${config.server_port}/randomcountrybirdandfact/${correctCountry}/${vernacular}`
                 )
@@ -143,6 +147,7 @@ export default function Game() {
                     setNewIndicator(resJson["indicatorName"]);
                     setNewValue(resJson["averageValue"]);
                   });
+                // fetch best country for bird
                 fetch(
                   `http://${config.server_host}:${config.server_port}/birdtocountry/${vernacular}`
                 )
@@ -150,6 +155,7 @@ export default function Game() {
                   .then((resJson) => {
                     setNewCountry(resJson["country"]);
                   });
+                // fetch best year for bird
                 fetch(
                   `http://${config.server_host}:${config.server_port}/birdtoyear/${vernacular}`
                 )
@@ -158,6 +164,7 @@ export default function Game() {
                     setNewYear(resJson["year"]);
                     setNewMetric(resJson["totalMetricByYear"]);
                   });
+                // fetch closest birds by coordinate
                 fetch(
                   `http://${config.server_host}:${config.server_port}/birdsclosebycoordinate/${id}`
                 )
@@ -175,6 +182,7 @@ export default function Game() {
                     setNewCountries(countries);
                     setNewValues(values);
                   });
+                // push genus and region to mongo user collection
                 fetch(
                   `http://${config.server_host}:${
                     config.server_port
@@ -185,6 +193,7 @@ export default function Game() {
                     method: "POST",
                   }
                 );
+                // generate image
                 openai.images
                   .generate({
                     prompt:

@@ -21,6 +21,7 @@ export default function Review() {
 
   useEffect(() => {
     if (user != null) {
+      // fetch observed user genera and regions
       fetch(
         `http://${config.server_host}:${config.server_port}/mongoget?user=${user.email}`
       )
@@ -31,6 +32,7 @@ export default function Review() {
 
           setGenus(genus);
           setRegion(region);
+          // fetch unobserved genera
           fetch(
             `http://${config.server_host}:${
               config.server_port
@@ -43,6 +45,7 @@ export default function Review() {
                 diffGenus.push(g["genus"]);
               });
               setDiffGenus(diffGenus);
+              // fetch unobserved regions
               fetch(
                 `http://${config.server_host}:${
                   config.server_port
@@ -57,6 +60,7 @@ export default function Review() {
                     diffRegion.push(r["region"]);
                   });
                   setDiffRegion(diffRegion);
+                  // fetch best country for genera
                   fetch(
                     `http://${config.server_host}:${
                       config.server_port
@@ -67,6 +71,7 @@ export default function Review() {
                     .then((res) => res.json())
                     .then((resJson) => {
                       setCountry(resJson["country"]);
+                      // fetch best year for genera
                       fetch(
                         `http://${config.server_host}:${
                           config.server_port

@@ -18,6 +18,7 @@ export default function Region({ params }: { params: { region: string } }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // fetch region facts
     fetch(
       `http://${config.server_host}:${config.server_port}/regionbirdsandfacts?region=${params.region}&facts='GDP (current US$)','GDP per capita (current US$)','Land area (sq. km)','Cereal production (metric tons)'`
     )
