@@ -9,11 +9,39 @@ const config = require("../../../../../backend/config.json");
 
 export default function Region({ params }: { params: { region: string } }) {
   const { user, error, isLoading } = useUser();
+  const [birds, setBirds] = useState([""]);
+  const [countries, setCountries] = useState([""]);
+  const [values, setValues] = useState([0]);
+  const [indicators, setIndicators] = useState([""]);
+  const [freq, setFreq] = useState([0]);
 
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setLoading(false);
+    fetch(
+      `http://${config.server_host}:${config.server_port}/regionbirdsandfacts?region=${params.region}&facts='GDP (current US$)','GDP per capita (current US$)','Land area (sq. km)','CO2 emissions (metric tons per capita)','Cereal production (metric tons)'`
+    )
+      .then((res) => res.json())
+      .then((resJson) => {
+        let birds: any[] = [];
+        let countries: any[] = [];
+        let values: any[] = [];
+        let indicators: any[] = [];
+        let freq: any[] = [];
+        resJson.forEach((country: any) => {
+          birds.push(country["bird_name"]);
+          countries.push(country["countryName"]);
+          values.push(country["avg_value_across_years"]);
+          indicators.push(country["indicator_name"]);
+          freq.push(country["bird_freq"]);
+        });
+        setBirds(birds);
+        setCountries(countries);
+        setValues(values);
+        setIndicators(indicators);
+        setFreq(freq);
+        setLoading(false);
+      });
   }, []);
 
   useEffect(() => {
@@ -38,8 +66,36 @@ export default function Region({ params }: { params: { region: string } }) {
           </button>
         </div>
       ) : (
-        <div className="mt-16 md:mt-32 mb-12 md:mb-24 container mx-auto max-w-screen-lg px-6 flex flex-col items-center">
-          {params.region}
+        <div className="mt-16 md:mt-32 mb-12 md:mb-24 container mx-auto max-w-screen-lg px-6 flex flex-col items-start">
+          <div className="mb-8 text-2xl font-bold text-center">
+            {params.region.replaceAll("%20", " ").replaceAll("%26", "&")}
+          </div>
+          {countries.map((c, i) => {
+            if (i % 5 == 0) {
+              return (
+                <div className="mb-8 flex flex-col">
+                  <div className="font-bold">{c}</div>
+                  <div>Most commonly recorded bird: {birds[i]}</div>
+                  <div>Recorded {freq[i]} times</div>
+                  <div>
+                    {indicators[i]}: {values[i]}
+                  </div>
+                  <div>
+                    {indicators[i + 1]}: {values[i + 1]}
+                  </div>
+                  <div>
+                    {indicators[i + 2]}: {values[i + 2]}
+                  </div>
+                  <div>
+                    {indicators[i + 3]}: {values[i + 3]}
+                  </div>
+                  <div>
+                    {indicators[i + 4]}: {values[i + 4]}
+                  </div>
+                </div>
+              );
+            }
+          })}
         </div>
       )}
     </div>

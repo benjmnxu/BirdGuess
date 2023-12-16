@@ -376,7 +376,7 @@ const diffGenus = async function (req, res) {
 // in that region as well as the associated indicator values (as specified)
 const regionBirdsAndFacts = async function (req, res) {
   const region = req.query.region;
-  const facts = Array.isArray(req.query.facts);
+  const facts = req.query.facts;
   connection.query(
     `
     WITH tmp1(country_name) AS (
@@ -394,22 +394,23 @@ const regionBirdsAndFacts = async function (req, res) {
       SELECT bird_name, country, bird_freq, ROW_NUMBER() OVER (PARTITION BY country ORDER BY bird_freq DESC)
       FROM raw_birds
     ),
-    tmp2(indicator_code, unitOfMeasure) AS (
-      SELECT indicatorCode, unitOfMeasure
+    tmp2(indicator_code, indicator_name, unitOfMeasure) AS (
+      SELECT indicatorCode, indicatorName, unitOfMeasure
       FROM worldBankIndicators
-      WHERE indicatorName IN ${facts}
+      WHERE indicatorName IN (${facts})
     )
     SELECT
       bird_name,
       countryName,
       AVG(value) AS avg_value_across_years,
       indicatorCode,
+      indicator_name,
       bird_freq
     FROM worldBankData w
     JOIN tmp1 t1 ON w.countryName = t1.country_name
     JOIN tmp2 t2 ON w.indicatorCode = t2.indicator_code
-    JOIN birds b ON b.country = t1.country_name
-    GROUP BY bird_name, countryName, indicatorCode, bird_freq;
+    JOIN birds b ON b.country = t1.country_name AND b.rnk = 1
+    GROUP BY indicator_name, countryName    
     `,
     (err, data) => {
       if (err || data.length == 0) {

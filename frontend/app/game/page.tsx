@@ -239,7 +239,7 @@ export default function Game() {
               <div className="flex items-center">
                 <div className="flex flex-col justify-center items-start">
                   <div className="text-lg">
-                    You got it! You used <b>{guesses} / 4</b> guesses
+                    You got it! You used {guesses} / 4 guesses
                   </div>
                   <div className="mt-6 text-2xl font-bold">
                     The {vernacular} was recorded in {choices[correct]}
@@ -318,9 +318,8 @@ export default function Game() {
               <div className="mt-24 text-4xl font-bold">
                 Where was the bird recorded?
               </div>
-              <div className="mt-8 text-lg text-center">
-                Hint: in <b>{year}</b>, this country's <b>{indicator}</b> is{" "}
-                <b>{value}</b>
+              <div className="w-[36rem] mt-8 text-lg text-center">
+                In {year}, this country's {indicator} was {value}
               </div>
               <div className="w-[36rem] mt-12 flex flex-col space-y-8">
                 {choices.map((choice, index) => {
@@ -343,7 +342,7 @@ export default function Game() {
                 })}
               </div>
               <div className="mt-12 text-lg">
-                You have used <b>{guesses} / 4</b> guesses
+                You have used {guesses} / 4 guesses
                 {incorrect ? ", guess again!" : ""}
               </div>
             </div>

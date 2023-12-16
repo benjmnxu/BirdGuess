@@ -114,11 +114,7 @@ export default function Review() {
               Observed genera
             </div>
             {genus.map((g, _) => {
-              return (
-                <Link href={"/review/genus/" + g}>
-                  <div className="text-center mb-2">{g}</div>
-                </Link>
-              );
+              return <div className="text-center mb-2">{g}</div>;
             })}
             <div className="border border-primary rounded p-8 mt-8 w-full">
               For all the observed genera, the most environmentally-friendly
@@ -151,7 +147,11 @@ export default function Review() {
               Unobserved regions
             </div>
             {diffRegion.map((r, _) => {
-              return <div className="text-center mb-2">{r}</div>;
+              return (
+                <Link href={"/review/region/" + r}>
+                  <div className="text-center mb-2">{r}</div>
+                </Link>
+              );
             })}
           </div>
         </div>
